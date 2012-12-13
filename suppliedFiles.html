@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./select2/select2.css" rel="stylesheet">
+    <link href="./css/config.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- if this has been filled in before, remove next class and "configured"-->
+    <div class="nav-steps">
+      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next active" href="suppliedFiles.html"><span class="badge badge-info">2</span> Supplied Files</a>
+      <span class="step_container next"><span class="badge">3</span> Compiler Options</span>
+      <span class="step_container next"><span class="badge">4</span> Tests</span>
+      <span class="step_container"><span class="badge">5</span> Sharing</span>
+    </div>
+
+    <div class="step-container">
+      <form class="form-horizontal" action="compilerOptions.html">
+        <legend>
+          Supplied Files
+          <span class="global-action"><a href="#" class="btn"><i class="icon-refresh"></i> Reload Listings</a></span>
+        </legend>
+
+        <div class="control-group">
+          <label class="control-label" for="compiledFiles">Files for compilation:</label>
+          <div class="controls" id="compiledFiles">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>
+                    Title
+                  </th>
+                  <th>
+                    File Name
+                  </th>
+                  <th>
+                    File Size
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Foo</td>
+                  <td class="file-list">foo.c</td>
+                  <td>1 kB</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <a href="#" target="_blank" class="btn">Add/Change Source Files</a>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="control-group">
+          <label class="control-label" for="fileSystemFiles">File-system files:</label>
+          <div class="controls" id="fileSystemFiles">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>
+                    Title
+                  </th>
+                  <th>
+                    File Name
+                  </th>
+                  <th>
+                    File Size
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Foo Stuff</td>
+                  <td class="file-list">foo.txt</td>
+                  <td>1 kB</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <a href="#" target="_blank" class="btn">Add/Change Run-time Files</a>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <!-- if it's been filled in before, make this say "Save" -->
+          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+        </div>
+      </form>
+    </div>
+
+
+    <script type="text/javascript" src="./jquery.js"></script>
+    <script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./formToJSON.js"></script>
+    <script type="text/javascript" src="./select2/select2.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {        
+
+      });
+    </script>
+  </body>
+</html>

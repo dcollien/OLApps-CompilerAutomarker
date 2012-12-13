@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./select2/select2.css" rel="stylesheet">
+    <link href="./css/config.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- if this has been filled in before, remove next class and "configured"-->
+    <div class="nav-steps">
+      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="suppliedFiles.html"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next active" href="compilerOptions.html"><span class="badge badge-info">3</span> Compiler Options</a>
+      <span class="step_container next"><span class="badge">4</span> Tests</span>
+      <span class="step_container"><span class="badge">5</span> Sharing</span>
+    </div>
+
+    <div class="step-container">
+      <form class="form-horizontal" action="tests.html">
+        <legend>
+          Compiler Options
+        </legend>
+
+        <div class="control-group">
+          <label class="control-label" for="compiledFiles">Compiled Programs:</label>
+          <div class="controls" id="compiledFiles">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>
+                    Name
+                  </th>
+                  <th>
+                    Files
+                  </th>
+                  <th>
+                    Compile Flags
+                  </th>
+                  <th>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="step-foo">
+                  <td>foo</td>
+                  <td>
+                    <ul class="unstyled file-list">
+                      <li>foo.c</li>
+                    </ul>
+                  <td>
+                    <code>-Wall -Werror</code>
+                  </td>
+                  <td>
+                    <a href="#" class="editOption" data-step="foo"><i class="icon-edit"></i></a>
+                    <a href="#" class="deleteOption" data-step="foo"><i class="icon-trash"></i></a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <a href="#" id="addCompilationButton" class="btn btn-success"><i class="icon-plus icon-white"></i> Add Compilation</a>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <!-- if it's been filled in before, make this say "Save" -->
+          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal hide fade" id="compilationModal">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Compilation Step</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label" for="compilationName">Name:</label>
+            <div class="controls">
+              <input type="text" name="compilationName" placeholder="Name">
+            </div>
+          </div>
+
+          <div class="control-group" id="compilationFilesContainer">
+            <label class="control-label" for="compilationFiles">Files:</label>
+            <div class="controls">
+              <input id="compilationFiles" type="text" name="compilationFiles" placeholder="Files to Compile">
+              <div>
+                List of all the files required by the compiler
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="compilationFlags">Compile Flags:</label>
+            <div class="controls">
+              <input id="compilationFlags" type="text" name="compilationFlags" placeholder="Compile Flags">
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a href="#" class="btn btn-success">Save</a>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="./jquery.js"></script>
+    <script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./formToJSON.js"></script>
+    <script type="text/javascript" src="./select2/select2.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {        
+        $('#compilationFlags').select2({
+          minimumInputLength: 2,
+          tokenSeparators: [",", " "],
+          tags: ['-Wall', '-Weverything', '-Werror'],
+          width: 'element'
+        });
+
+        $('#compilationFiles').select2({
+          minimumInputLength: 2,
+          tokenSeparators: [",", " "],
+          tags: ['foo.c', 'bah.h'], // TODO: function that extracts this from #requiredFileNames
+          width: 'element'
+        });
+
+        $('#addCompilationButton').click(function(){
+          $('#compilationModal').modal('show');
+        });
+
+        $('.editOption').click(function(){
+          var id = $(this).data('step');
+          // populateModal(id);
+          $('#compilationModal').modal('show');
+        });
+      });
+    </script>
+  </body>
+</html>

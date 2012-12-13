@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="./select2/select2.css" rel="stylesheet">
+    <link href="./css/config.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- if this has been filled in before, remove next class and "configured"-->
+    <div class="nav-steps">
+      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="suppliedFiles.html"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next completed" href="compilerOptions.html"><span class="badge badge-success">3</span> Compiler Options</a>
+      <a class="step_container next completed" href="tests.html"><span class="badge badge-success">4</span> Tests</a>
+      <a class="step_container completed" href="sharing.html"><span class="badge badge-success">5</span> Sharing</a>
+    </div>
+
+    <div class="step-container">
+      <form class="form-horizontal" action="done.html">
+        <legend><i class="icon-ok"></i> Configured!</legend>
+
+        <div class="control-group">
+          <label>Review Configuration:</label>
+          <div class="controls">
+            <ul class="unstyled">
+              <li><a href="submittedFiles.html">Submitted Files</a></li>
+              <li><a href="suppliedFiles.html">Supplied Files</a></li>
+              <li><a href="compilerOptions.html">Compiler Options</a></li>
+              <li><a href="tests.html">Tests</a></li>
+              <li><a href="sharing.html">Sharing</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <!-- if it's been filled in before, make this say "Save" -->
+          <button type="submit" class="btn">Return to Activity</button>
+        </div>
+      </form>
+    </div>
+
+
+    <script type="text/javascript" src="./jquery.js"></script>
+    <script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./formToJSON.js"></script>
+    <script type="text/javascript" src="./select2/select2.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {        
+
+      });
+    </script>
+  </body>
+</html>
