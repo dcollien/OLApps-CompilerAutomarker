@@ -16,7 +16,7 @@
     </div>
 
     <div class="step-container">
-      <form class="form-horizontal" action="done.html">
+      <form class="form-horizontal">
         <legend>
           Sharing Options
         </legend>
@@ -26,9 +26,9 @@
         <div class="control-group">
           <label class="control-label" for="sharingOptions">Sharing Options:</label>
           <div class="controls" id="sharingOptions">
-            <label class="radio"><input name="sharingOptions" type="radio" checked>Submission and output is public</label>
-            <label class="radio"><input name="sharingOptions" type="radio">Only output is public</label>
-            <label class="radio"><input name="sharingOptions" type="radio">Submission is private</label>
+            <label class="radio"><input class="sharingOption" name="sharingOptions" value="public" type="radio" checked>Submission and output are both exhibited</label>
+            <label class="radio"><input class="sharingOption" name="sharingOptions" value="outputOnly" type="radio">Only output is exhibited</label>
+            <label class="radio"><input class="sharingOption" name="sharingOptions" value="private" type="radio">Everything is kept private</label>
           </div>
         </div>
 
@@ -38,16 +38,18 @@
           </label>
           <div class="controls">
               <select id="outputExhibited">
-                <option>foo (stdout)</option>
-                <option>File system file</option>
+                <!-- TODO: read from server -->
+                <option value="foo">foo (stdout)</option>
+
+                <option value="--file-system">File system file</option>
               </select>
-              <input type="text" placeholder="File Name" disabled>
+              <input type="text" id="fileNameInput" placeholder="File Name" disabled>
           </div>
         </div>
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+          <a href="done.html" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -58,8 +60,53 @@
     <script type="text/javascript" src="../media/formToJSON.js"></script>
     <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
-      $(document).ready(function() {        
+      $(document).ready(function() {
+        var saveTarget = './saveSharing';
+
         $('.help-bubble').tooltip();
+
+        $('.sharingOption').change(function() {
+          $('#outputExhibited').prop('disabled', $(this).val() === 'private');
+
+          if ($('#outputExhibited').val() === '--file-system') {
+            $('#fileNameInput').prop('disabled', $(this).val() === 'private');
+          }
+        });
+
+        $('#outputExhibited').change(function() {
+          $('#fileNameInput').prop('disabled', $(this).val() !== '--file-system');
+        });
+
+        var getSaveData = function() {
+          var data;
+
+          data = {
+            sharing: $('.sharingOption:checked').val(),
+            outputExhibited: $('#outputExhibited').val(),
+            fileNameExhibited: $('#fileNameInput').val()
+          };
+
+          console.log( data );
+
+          return data;
+        };
+
+        var save = function() {
+          $.ajax( {
+            type: "POST",
+            data: getSaveData(),
+            url: saveTarget,
+            async: false,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          });
+        };
+
+        $(window).unload(function() {
+          save();
+        });
+
       });
     </script>
   </body>

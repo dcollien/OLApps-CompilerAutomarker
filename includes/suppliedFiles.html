@@ -16,10 +16,10 @@
     </div>
 
     <div class="step-container">
-      <form class="form-horizontal" action="compilerOptions.html">
+      <form class="form-horizontal">
         <legend>
           Supplied Files
-          <span class="global-action"><a href="#" class="btn"><i class="icon-refresh"></i> Reload Listings</a></span>
+          <span class="global-action"><a href="#" id="reloadButton" class="btn"><i class="icon-refresh"></i> Reload Listings</a></span>
         </legend>
 
         <div class="control-group">
@@ -45,13 +45,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>Foo</td>
-                  <td class="file-list">foo.c</td>
-                  <td>1 kB</td>
-                  <td><label class="checkbox"><input type="checkbox" name="file0precedence" checked> Overwrite</label>
-                </tr>
+              <tbody id="compilationFileList">
               </tbody>
             </table>
 
@@ -87,17 +81,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>Foo Stuff</td>
-                  <td class="file-list">foo.txt</td>
-                  <td>1 kB</td>
-                  <td>
-                    <label class="checkbox"><input type="checkbox" name="file0read" checked> Read</label>
-                    <label class="checkbox"><input type="checkbox" name="file0write" checked> Write</label>
-                  </td>
-                  <td><label class="checkbox"><input type="checkbox" name="file0precedence" checked> Overwrite</label>
-                </tr>
+              <tbody id="fileSystemFileList">
               </tbody>
             </table>
 
@@ -107,7 +91,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+          <a href="compilerOptions.html" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -118,8 +102,157 @@
     <script type="text/javascript" src="../media/formToJSON.js"></script>
     <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
-      $(document).ready(function() {        
+      $(document).ready(function() {   
         $('.help-bubble').tooltip();
+
+        // TODO: load from server
+        var compilationFiles = [ {
+          title: 'Foo',
+          filename: 'foo.c',
+          size: 1024,
+          overwrite: true
+        } ];
+
+        var fileSystemFiles = [ {
+          title: 'Foo Stuff',
+          filename: 'foo.txt',
+          size: 1024,
+          readable: true,
+          writable: true,
+          overwrite: true
+        } ];
+
+        var formatFileSize = function(filesize) {
+          var round2dp = function(number) {
+            number *= 100.0;
+            number = Math.round(number);
+            return number/100.0;
+          };
+
+          if (filesize >= 1073741824) {
+            filesize = round2dp(filesize / 1073741824.0) + ' Gb';
+          } else { 
+            if (filesize >= 1048576) {
+              filesize = round2dp(filesize / 1048576.0) + ' Mb';
+            } else { 
+              if (filesize >= 1024) {
+                filesize = round2dp(filesize / 1024.0) + ' Kb';
+              } else {
+                filesize = round2dp(filesize) + ' bytes';
+              };
+            };
+          };
+
+          return filesize;
+        };
+
+        var populateFileTables = function() {
+          var i, $row;
+
+          for (i = 0; i != compilationFiles.length; ++i) {
+            $row = $('<tr>');
+
+            $row.append( $('<td>').text( compilationFiles[i].title ) );
+            $row.append( $('<td class="file-list">').text( compilationFiles[i].filename ) );
+            $row.append( $('<td>').text( formatFileSize(compilationFiles[i].size) ) );
+
+            $row.append(
+              $('<td>').append( 
+                $('<label class="checkbox">').append(
+                  $('<input type="checkbox">')
+                    .data('index', i)
+                    .prop('checked', compilationFiles[i].overwrite)
+                    .change( function() {
+                      var index = $(this).data('index');
+                      compilationFiles[index].overwrite = $(this).prop('checked');
+                    } )
+                ).append('Overwrite')
+              )
+            );
+
+            $('#compilationFileList').append($row);
+          }
+
+          for (i = 0; i != fileSystemFiles.length; ++i) {
+            $row = $('<tr>');
+
+            $row.append( $('<td>').text( fileSystemFiles[i].title ) );
+            $row.append( $('<td class="file-list">').text( fileSystemFiles[i].filename ) );
+            $row.append( $('<td>').text( formatFileSize(fileSystemFiles[i].size) ) );
+
+            $row.append(
+              $('<td>').append( 
+                $('<label class="checkbox">').append(
+                  $('<input type="checkbox">')
+                    .data('index', i)
+                    .prop('checked', fileSystemFiles[i].readable)
+                    .change( function() {
+                      var index = $(this).data('index');
+                      fileSystemFiles[index].readable = $(this).prop('checked');
+                    } )
+                ).append('Read')
+              ).append( 
+                $('<label class="checkbox">').append(
+                  $('<input type="checkbox">')
+                    .data('index', i)
+                    .prop('checked', fileSystemFiles[i].writable)
+                    .change( function() {
+                      var index = $(this).data('index');
+                      fileSystemFiles[index].writable = $(this).prop('checked');
+                    } )
+                ).append('Write')
+              )
+            );
+
+            $row.append(
+              $('<td>').append( 
+                $('<label class="checkbox">').append(
+                  $('<input type="checkbox">')
+                    .data('index', i)
+                    .prop('checked', fileSystemFiles[i].overwrite)
+                    .change( function() {
+                      var index = $(this).data('index');
+                      fileSystemFiles[index].overwrite = $(this).prop('checked');
+                    } )
+                ).append('Overwrite')
+              )
+            );
+
+            $('#fileSystemFileList').append($row);
+          }
+
+        };
+
+        populateFileTables();
+
+        var saveTarget = './saveSuppliedFiles';
+
+        $('#reloadButton').click( function() {
+          document.location.reload();
+        } ); 
+
+        var getSaveData = function() {
+          return {
+            compilationFiles: compilationFiles,
+            fileSystemFiles: fileSystemFiles
+          };
+        };
+
+        var save = function() {
+          $.ajax( {
+            type: "POST",
+            data: getSaveData(),
+            url: saveTarget,
+            async: false,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          })
+        };
+
+        $(window).unload(function() {
+          save();
+        });
       });
     </script>
   </body>

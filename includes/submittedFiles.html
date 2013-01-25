@@ -16,7 +16,7 @@
     </div>
 
     <div class="step-container">
-      <form class="form-horizontal" action="suppliedFiles.html">
+      <form class="form-horizontal">
         <legend>Submitted Files</legend>
         <div class="control-group">
           <label class="control-label" for="fileSubmissionMethod">What can be submitted?</label>
@@ -98,7 +98,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+          <a href="suppliedFiles.html" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -176,6 +176,8 @@
     <script type="text/javascript" src="../media/formToJSON.js"></script>
     <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
+      var saveTarget = './saveSubmittedFiles';
+
       var multiFile = false;
       var editingStep = null;
 
@@ -204,19 +206,39 @@
 
         var successCallback = function() {
           $row = buildPreprocessingStep(step);
-          
+
           if ($('#isNew').val() === 'true' ) {
             $('#preprocessingSteps').append( $row );
           } else {
             $prevElement = $(editingStep.element);
             $prevElement.replaceWith( $row );
           }
-          
+
           $('#preprocessingModal').modal('hide');
         };
 
         console.log('saving: ', step);
-        successCallback(); // TODO AJAX save
+
+        var stepData = {
+          name: step.name,
+          action: step.action,
+          files: step.files.join(','),
+          search: step.search,
+          replace: step.replace
+        };
+
+        $.ajax( {
+          type: "POST",
+          data: stepData,
+          url: './savePreprocessingStep',
+          async: false,
+          success: successCallback,
+          error: function() {
+            alert('Unable to save: Connection error');
+
+            successCallback(); // TODO REMOVE ME
+          }
+        });
 
       };
 
@@ -335,9 +357,22 @@
             $prevRow.before($row); 
           }
 
-          // TODO AJAX
           console.log('moving up:', step);
-          callback();
+          $.ajax( {
+            type: "POST",
+            data: {
+              stepName: step.name,
+              action: 'up',
+            },
+            url: './changePreprocessingStep',
+            async: false,
+            success: callback,
+            error: function() {
+              alert('Unable to save: Connection error');
+
+              callback(); // TODO REMOVE ME
+            }
+          });
         });
 
 
@@ -350,10 +385,23 @@
             $nextRow.after($row);
           }
 
-          // TODO AJAX
           console.log('moving down:', step);
-          callback();
-        });
+          $.ajax( {
+              type: "POST",
+              data: {
+                stepName: step.name,
+                action: 'down'
+              },
+              url: './changePreprocessingStep',
+              async: false,
+              success: callback,
+              error: function() {
+                alert('Unable to save: Connection error');
+
+                callback(); // TODO REMOVE ME
+              }
+            });
+          });
 
         $('#preprocessingSteps').on('click', '.deleteButton', function(){
           var step = $(this).closest('.processingStepEntry').data('step');
@@ -363,7 +411,21 @@
           }
 
           console.log('deleting:', step);
-          successCallback(); // TODO AJAX
+          $.ajax( {
+            type: "POST",
+            data: {
+              stepName: step.name,
+              action: 'delete'
+            },
+            url: './changePreprocessingStep',
+            async: false,
+            success: successCallback,
+            error: function() {
+              alert('Unable to save: Connection error');
+
+              successCallback(); // TODO REMOVE ME
+            }
+          });
         });
 
         $('#fileSubmissionOptions input:radio').change(function() {
@@ -398,6 +460,38 @@
           $('#uploadOption').prop('checked', true);
         }
         $('#fileSubmissionOptions input:radio').change();
+
+
+        var getSaveData = function() {
+          var data;
+
+          data = {
+            multiFile: $('#uploadOption').prop('checked'),
+            requiredFileNames: $('#requiredFileNames').val(),
+            optionalFileNames: $('#optionalFileNames').val(),
+            precludedFileNames: $('#precludedFileNames').val()
+          };
+
+          console.log( data );
+
+          return data;
+        };
+
+        var save = function() {
+          $.ajax( {
+            type: "POST",
+            data: getSaveData(),
+            url: saveTarget,
+            async: false,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          });
+        };
+
+        $(window).unload(function() {
+          save();
+        });
 
       });
     </script>

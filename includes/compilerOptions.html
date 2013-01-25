@@ -172,7 +172,26 @@
           }
 
           console.log('saving: ', step);
-          successCallback(); // TODO AJAX save
+
+          var stepData = {
+            name: step.name,
+            description: step.description,
+            files: step.files.join(','),
+            flags: step.flags.join(',')
+          };
+
+          $.ajax( {
+            type: "POST",
+            data: stepData,
+            url: './saveCompilationStep',
+            async: false,
+            success: successCallback,
+            error: function() {
+              alert('Unable to save: Connection error');
+
+              successCallback(); // TODO REMOVE ME
+            }
+          });
 
         };
 
@@ -248,10 +267,22 @@
             $(step.element).remove();
           }
 
-          console.log('deleting:', step);
-          successCallback(); // TODO AJAX
-        });
+          console.log('deleting:', step);$.ajax( {
+            type: "POST",
+            data: {
+              stepName: step.name,
+              action: 'delete'
+            },
+            url: './changeCompilationStep',
+            async: false,
+            success: successCallback,
+            error: function() {
+              alert('Unable to save: Connection error');
 
+              successCallback(); // TODO REMOVE ME
+            }
+          });
+        });
       });
     </script>
   </body>
