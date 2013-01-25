@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="./select2/select2.css" rel="stylesheet">
-    <link href="./css/config.css" rel="stylesheet">
+    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="../media/select2/select2.css" rel="stylesheet">
+    <link href="../media/css/config.css" rel="stylesheet">
   </head>
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
@@ -37,6 +37,12 @@
                   <th>
                     File Size
                   </th>
+                  <th>
+                    <span class="overwrittenHeader">Overwrite</span>
+                    <span class="help-inline">
+                      <i class="icon-question-sign help-bubble" title="Checked if this file overwrites one which has been submitted with the same file name."></i>
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -44,6 +50,7 @@
                   <td>Foo</td>
                   <td class="file-list">foo.c</td>
                   <td>1 kB</td>
+                  <td><label class="checkbox"><input type="checkbox" name="file0precedence" checked> Overwrite</label>
                 </tr>
               </tbody>
             </table>
@@ -69,6 +76,15 @@
                   <th>
                     File Size
                   </th>
+                  <th>
+                    Permissions
+                  </th>
+                  <th>
+                    <span class="overwrittenHeader">Overwrite</span>
+                    <span class="help-inline">
+                      <i class="icon-question-sign help-bubble" title="Checked if this file overwrites one which has been submitted with the same file name."></i>
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -76,6 +92,11 @@
                   <td>Foo Stuff</td>
                   <td class="file-list">foo.txt</td>
                   <td>1 kB</td>
+                  <td>
+                    <label class="checkbox"><input type="checkbox" name="file0read" checked> Read</label>
+                    <label class="checkbox"><input type="checkbox" name="file0write" checked> Write</label>
+                  </td>
+                  <td><label class="checkbox"><input type="checkbox" name="file0precedence" checked> Overwrite</label>
                 </tr>
               </tbody>
             </table>
@@ -90,15 +111,15 @@
         </div>
       </form>
     </div>
+    
 
-
-    <script type="text/javascript" src="./jquery.js"></script>
-    <script type="text/javascript" src="./bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="./formToJSON.js"></script>
-    <script type="text/javascript" src="./select2/select2.min.js"></script>
+    <script type="text/javascript" src="../media/jquery.js"></script>
+    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../media/formToJSON.js"></script>
+    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
       $(document).ready(function() {        
-
+        $('.help-bubble').tooltip();
       });
     </script>
   </body>

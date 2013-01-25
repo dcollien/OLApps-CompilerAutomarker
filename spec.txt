@@ -1,0 +1,28 @@
+x Requires a certain match preprocessing
+x Forbids a certain match
+X Say which has precedence: supplied or submitted
+X Non-overridable files and overridable files (checkbox)
+x CHMOD on FS files
+x "Step 1" placeholder for compilation step - call it "Target" -o
+x "Files" has an example placeholder
+x Description for a compilation step
+
+x Required, Optional, Precluded (in that order): wildcards allowed
+
+
+Test
+x Target to run
+x selection not a tag box
+- File upload box to auto fill STDIN/STDOUT textareas
+x Ignore exit code next to exit code box
+x STDOUT options next to STDOUT textarea
+x collapse runs of whitespace into a single space
+- Feedback for when exit code doesn't match
+- get rid of completion condition
+
+
+Submission:
+- upload box for textarea
+
+
+- check duplicate names/ids

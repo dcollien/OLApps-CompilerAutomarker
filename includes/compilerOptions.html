@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="../media/select2/select2.css" rel="stylesheet">
+    <link href="../media/css/config.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- if this has been filled in before, remove next class and "configured"-->
+    <div class="nav-steps">
+      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="suppliedFiles.html"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next active" href="compilerOptions.html"><span class="badge badge-info">3</span> Compiler Options</a>
+      <span class="step_container next"><span class="badge">4</span> Tests</span>
+      <span class="step_container"><span class="badge">5</span> Sharing</span>
+    </div>
+
+    <div class="step-container">
+      <form class="form-horizontal" action="tests.html">
+        <legend>
+          Compiler Options
+        </legend>
+
+        <div class="control-group">
+          <label class="control-label" for="compiledFiles">Compiled Programs:</label>
+          <div class="controls" id="compiledFiles">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>
+                    Name
+                  </th>
+                  <th>
+                    Description
+                  </th>
+                  <th>
+                    Files
+                  </th>
+                  <th>
+                    Compile Flags
+                  </th>
+                  <th>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="compilationSteps">
+              </tbody>
+            </table>
+
+            <a href="#" id="addCompilationButton" class="btn btn-success"><i class="icon-plus icon-white"></i> Add Compilation</a>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <!-- if it's been filled in before, make this say "Save" -->
+          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal hide fade" id="compilationModal">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Compilation Step</h3>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <input type="hidden" id="isNew" name="isNew" value="false">
+          <div class="control-group">
+            <label class="control-label" for="compilationName">Program Title:</label>
+            <div class="controls">
+              <input type="text" id="compilationName" name="compilationName" placeholder="Program Title">
+              <span class="help-inline">
+                <i class="icon-question-sign help-bubble" title="An identifying name for the output of the compilation, i.e. the -o flag"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="compilationDescription">Description:</label>
+            <div class="controls">
+              <textarea id="compilationDescription" name="compilationDescription"></textarea>
+              <span class="help-inline">
+                  <i class="icon-question-sign help-bubble" title="A description that is displayed along with the status of this compilation"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="control-group" id="compilationFilesContainer">
+            <label class="control-label" for="compilationFiles">Files:</label>
+            <div class="controls">
+              <input id="compilationFiles" type="text" name="compilationFiles" placeholder="Files to Compile">
+              <span class="help-inline">
+                <i class="icon-question-sign help-bubble" title="List of all the files which need to be sent to the compiler, i.e. .c and .h files"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="compilationFlags">Compile Flags:</label>
+            <div class="controls">
+              <input id="compilationFlags" type="text" name="compilationFlags" placeholder="Compile Flags">
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+        <a href="#" class="btn btn-success" id="saveButton">Save</a>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="../media/jquery.js"></script>
+    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../media/formToJSON.js"></script>
+    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $('.help-bubble').tooltip();
+
+        var multiFile = true; // TODO load from server
+        var editingStep = null;
+
+        $('#compilationFlags').select2({
+          minimumInputLength: 2,
+          tokenSeparators: [",", " "],
+          tags: ['-Wall', '-Weverything', '-Werror'],
+          width: 'element'
+        });
+
+        $('#compilationFiles').select2({
+          minimumInputLength: 2,
+          tokenSeparators: [",", " "],
+          tags: ['foo.c', 'bah.h'], // TODO load from server
+          width: 'element'
+        });
+
+        var populateModal = function(step) {
+          console.log( 'populating with:', step );
+
+          $('#compilationName').val(step.name);
+          $('#compilationDescription').val(step.description);
+          $('#compilationFiles').select2('val', step.files);
+          $('#compilationFlags').select2('val', step.flags);
+          $('#isNew').val('false');
+          editingStep = step;
+        };
+        
+        var saveModal = function() {
+          var $row, step, $prevElement;
+          
+          step = {
+            name: $('#compilationName').val(),
+            description: $('#compilationDescription').val(),
+            files: $('#compilationFiles').val().split(','),
+            flags: $('#compilationFlags').val().split(',')
+          };
+
+          var successCallback = function() {
+            console.log( 'replacing:', $prevElement );
+            $row = buildStep(step);
+
+            if ($('#isNew').val() === 'true' ) {
+              $('#compilationSteps').append( $row );
+            } else {
+              $prevElement = $(editingStep.element);
+              $prevElement.replaceWith( $row );
+            }
+
+            $('#compilationModal').modal('hide');
+          }
+
+          console.log('saving: ', step);
+          successCallback(); // TODO AJAX save
+
+        };
+
+        var buildStep = function(step) {
+          var $filesCell, $flagsCell, $fileList, $row;
+          
+          $row = $('<tr class="stepEntry">');
+          $row.append( $('<td>').text(step.name) );
+          $row.append( $('<td>').text(step.description) );
+
+          $fileList = $('<ul class="unstyled file-list">');
+
+          $(step.files).each(function(index, item) {
+            $fileList.append( $('<li>').text(item) );
+          });
+
+          $filesCell = $('<td class="filesColumn">').append( $fileList );
+
+          if (!multiFile) {
+            $filesCell.hide();
+          }
+
+          $row.append( $filesCell );
+
+          $flagsCell = $('<td>');
+
+          $flagsCell.append( $('<code>').text( step.flags.join(' ') ) );
+
+
+          $row.append( $flagsCell );
+          $row.append( 
+            $('<td>')
+              .append('<a href="#" class="editButton"><i class="icon-edit"></i></a> ')
+              .append('<a href="#" class="deleteButton"><i class="icon-trash"></i></a> ')
+          );
+
+          step.element = $row;
+          $row.data('step', step);
+
+          return $row;
+        };
+
+        $('#saveButton').click(function(){
+          saveModal();
+        });
+
+        $('#addCompilationButton').click(function(){
+          $('#compilationModal').modal('show');
+          $('#compilationModal form')[0].reset();
+          $('#compilationFiles').select2('val', []);
+          $('#compilationFlags').select2('val', []);
+
+          $('#isNew').val('true');
+          return false;
+        });
+
+        
+        $('#compilationSteps').on('click', '.editButton', function(){
+          $('#compilationModal').modal('show');
+          $('#compilationModal form')[0].reset();
+          $('#compilationFiles').select2('val', []);
+          $('#compilationFlags').select2('val', []);
+
+          var step = $(this).closest('.stepEntry').data('step');
+          populateModal(step);
+          return false;
+        });
+
+        $('#compilationSteps').on('click', '.deleteButton', function(){
+          var step = $(this).closest('.stepEntry').data('step');
+
+          var successCallback = function() {
+            $(step.element).remove();
+          }
+
+          console.log('deleting:', step);
+          successCallback(); // TODO AJAX
+        });
+
+      });
+    </script>
+  </body>
+</html>
