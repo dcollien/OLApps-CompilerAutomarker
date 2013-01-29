@@ -1,22 +1,18 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="../media/select2/select2.css" rel="stylesheet">
-    <link href="../media/css/config.css" rel="stylesheet">
-  </head>
+  {{&head}}
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
-      <a class="step_container next completed" href="suppliedFiles.html"><span class="badge badge-success">2</span> Supplied Files</a>
-      <a class="step_container next completed" href="compilerOptions.html"><span class="badge badge-success">3</span> Compiler Options</a>
-      <a class="step_container next active" href="test.html"><span class="badge badge-info">4</span> Tests</a>
+      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="./?step=suppliedFiles"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next completed" href="./?step=compilerOptions"><span class="badge badge-success">3</span> Compiler Options</a>
+      <a class="step_container next active" href="./?step=tests"><span class="badge badge-info">4</span> Tests</a>
       <span class="step_container"><span class="badge">5</span> Sharing</span>
     </div>
 
     <div class="step-container">
-      <form class="form-horizontal" action="sharing.html">
+      <form class="form-horizontal">
         <legend>
           Tests
         </legend>
@@ -47,7 +43,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+          <a href="./?step=sharing" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -260,12 +256,21 @@
               $prevElement.replaceWith( $row );
             }
 
+            app.resize();
             $('#testModal').modal('hide');
           }
 
           console.log('saving: ', test);
-          successCallback(); // TODO AJAX save
-
+          $.ajax( {
+            type: "POST",
+            data: test,
+            url: './saveTest',
+            async: false,
+            success: successCallback,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          });
         };
 
         var buildTestRow = function(test) {
@@ -319,10 +324,20 @@
           var callback = function() {
             $prevRow.before($row);
           }
-
-          // TODO AJAX
-          console.log('moving up:', test);
-          callback();
+          
+          $.ajax( {
+            type: "POST",
+            data: {
+              stepName: test.name,
+              action: 'up',
+            },
+            url: './changeTest',
+            async: false,
+            success: callback,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          });
         });
 
 
@@ -335,9 +350,19 @@
             $nextRow.after($row);
           }
 
-          // TODO AJAX
-          console.log('moving down:', test);
-          callback();
+          $.ajax( {
+            type: "POST",
+            data: {
+              stepName: test.name,
+              action: 'down',
+            },
+            url: './changeTest',
+            async: false,
+            success: callback,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          });
         });
 
         $('#testsListing').on('click', '.deleteButton', function(){
@@ -346,9 +371,19 @@
           var successCallback = function() {
             $(test.element).remove();
           }
-
-          console.log('deleting:', test);
-          successCallback(); // TODO AJAX
+          $.ajax( {
+            type: "POST",
+            data: {
+              stepName: test.name,
+              action: 'delete'
+            },
+            url: './changeTest',
+            async: false,
+            success: successCallback,
+            error: function() {
+              alert('Unable to save: Connection error');
+            }
+          });
         });
 
         $('#testProgram').select2({
@@ -390,6 +425,21 @@
         $('#saveButton').click(function(){
           saveModal();
         });
+
+        var loadTests = function() {
+          var steps, i, $row;
+          
+          tests = {{tests}};
+
+          for (i = 0; i != tests.length; ++i) {
+            $row = buildStep(tests[i]);
+            $('#testsListing').append( $row );
+          }
+          app.resize();
+        };
+
+        loadTests();
+
       });
     </script>
   </body>

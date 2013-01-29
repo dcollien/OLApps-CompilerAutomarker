@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  {{&head}}
+  <body>
+    <!-- if this has been filled in before, remove next class and "configured"-->
+    <div class="nav-steps">
+      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="./?step=suppliedFiles"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next completed" href="./?step=compilerOptions"><span class="badge badge-success">3</span> Compiler Options</a>
+      <a class="step_container next completed" href="./?step=tests"><span class="badge badge-success">4</span> Tests</a>
+      <a class="step_container completed" href="./?step=sharing"><span class="badge badge-success">5</span> Sharing</a>
+    </div>
+    
+    <div class="step-container">
+      <form class="form-horizontal">
+        <legend><i class="icon-ok"></i> Configured!</legend>
+
+        <div class="control-group">
+          <label>Review Configuration:</label>
+          <div class="controls">
+            <ul class="unstyled">
+              <li><a href="./?step=submittedFiles">Submitted Files</a></li>
+              <li><a href="./?step=suppliedFiles">Supplied Files</a></li>
+              <li><a href="./?step=compilerOptions">Compiler Options</a></li>
+              <li><a href="./?step=tests">Tests</a></li>
+              <li><a href="./?step=sharing">Sharing</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <!-- if it's been filled in before, make this say "Save" -->
+          <button type="submit" class="btn">Return to Activity</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

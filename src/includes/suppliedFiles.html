@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="../media/select2/select2.css" rel="stylesheet">
-    <link href="../media/css/config.css" rel="stylesheet">
-  </head>
+  {{&head}}
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
-      <a class="step_container next active" href="suppliedFiles.html"><span class="badge badge-info">2</span> Supplied Files</a>
+      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next active" href="./?step=suppliedFiles"><span class="badge badge-info">2</span> Supplied Files</a>
       <span class="step_container next"><span class="badge">3</span> Compiler Options</span>
       <span class="step_container next"><span class="badge">4</span> Tests</span>
       <span class="step_container"><span class="badge">5</span> Sharing</span>
@@ -91,36 +87,19 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <a href="compilerOptions.html" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./?step=compilerOptions" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
     
-
-    <script type="text/javascript" src="../media/jquery.js"></script>
-    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../media/formToJSON.js"></script>
-    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
-      $(document).ready(function() {   
+      $(document).ready(function() { 
+        var compilationFiles, fileSystemFiles;
+
         $('.help-bubble').tooltip();
 
-        // TODO: load from server
-        var compilationFiles = [ {
-          title: 'Foo',
-          filename: 'foo.c',
-          size: 1024,
-          overwrite: true
-        } ];
-
-        var fileSystemFiles = [ {
-          title: 'Foo Stuff',
-          filename: 'foo.txt',
-          size: 1024,
-          readable: true,
-          writable: true,
-          overwrite: true
-        } ];
+        compilationFiles = [];
+        fileSystemFiles = [];
 
         var formatFileSize = function(filesize) {
           var round2dp = function(number) {
@@ -223,14 +202,6 @@
 
         };
 
-        populateFileTables();
-
-        var saveTarget = './saveSuppliedFiles';
-
-        $('#reloadButton').click( function() {
-          document.location.reload();
-        } ); 
-
         var getSaveData = function() {
           return {
             compilationFiles: compilationFiles,
@@ -242,13 +213,58 @@
           $.ajax( {
             type: "POST",
             data: getSaveData(),
-            url: saveTarget,
+            url: './saveSuppliedFiles',
             async: false,
             error: function() {
               alert('Unable to save: Connection error');
             }
           })
         };
+
+        var load = function() {
+          $.ajax( {
+            type: "GET",
+            dataType: "json",
+            url: './loadSuppliedFiles',
+            error: function() {
+              alert('Unable to load: Connection error');
+            },
+            success: function(data) {
+              // TODO: load from server
+              compilationFiles = data.compilationFiles;
+
+              /*[ {
+                title: 'Foo',
+                filename: 'foo.c',
+                size: 1024,
+                overwrite: true
+              } ];
+              */
+
+              fileSystemFiles = data.fileSystemFiles;
+
+              /*[ {
+                title: 'Foo Stuff',
+                filename: 'foo.txt',
+                size: 1024,
+                readable: true,
+                writable: true,
+                overwrite: true
+              } ];
+              */
+
+              $('#fileSystemFileList').empty();
+              populateFileTables();
+              app.resize();
+            }
+          } );
+        }
+
+        load();
+
+        $('#reloadButton').click( function() {
+          load();
+        } ); 
 
         $(window).unload(function() {
           save();

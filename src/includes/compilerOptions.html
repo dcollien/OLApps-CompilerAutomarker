@@ -1,22 +1,18 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="../media/select2/select2.css" rel="stylesheet">
-    <link href="../media/css/config.css" rel="stylesheet">
-  </head>
+  {{&head}}
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
-      <a class="step_container next completed" href="suppliedFiles.html"><span class="badge badge-success">2</span> Supplied Files</a>
-      <a class="step_container next active" href="compilerOptions.html"><span class="badge badge-info">3</span> Compiler Options</a>
+      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="./?step=suppliedFiles"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next active" href="./?step=compilerOptions"><span class="badge badge-info">3</span> Compiler Options</a>
       <span class="step_container next"><span class="badge">4</span> Tests</span>
       <span class="step_container"><span class="badge">5</span> Sharing</span>
     </div>
 
     <div class="step-container">
-      <form class="form-horizontal" action="tests.html">
+      <form class="form-horizontal">
         <legend>
           Compiler Options
         </legend>
@@ -53,7 +49,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <button type="submit" class="btn btn-primary pull-right">Next &rarr;</button>
+          <a href="./?step=tests" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -118,9 +114,23 @@
     <script type="text/javascript">
       $(document).ready(function() {
         $('.help-bubble').tooltip();
+        var multiFile, editingStep, allFiles;
+        multiFile = false;
 
-        var multiFile = true; // TODO load from server
-        var editingStep = null;
+        {{#multiFile}}
+        multiFile = true;
+        {{/multiFile}}
+
+        editingStep = null;
+
+        allFiles = '{{requiredFiles}}'.split(',').concat( '{{optionalFiles}}'.split(',') );
+
+        $('#compilationFiles').select2({
+          minimumInputLength: 2,
+          tokenSeparators: [",", " "],
+          tags: allFiles,
+          width: 'element'
+        });
 
         $('#compilationFlags').select2({
           minimumInputLength: 2,
@@ -128,14 +138,7 @@
           tags: ['-Wall', '-Weverything', '-Werror'],
           width: 'element'
         });
-
-        $('#compilationFiles').select2({
-          minimumInputLength: 2,
-          tokenSeparators: [",", " "],
-          tags: ['foo.c', 'bah.h'], // TODO load from server
-          width: 'element'
-        });
-
+        
         var populateModal = function(step) {
           console.log( 'populating with:', step );
 
@@ -146,7 +149,7 @@
           $('#isNew').val('false');
           editingStep = step;
         };
-        
+
         var saveModal = function() {
           var $row, step, $prevElement;
           
@@ -168,6 +171,7 @@
               $prevElement.replaceWith( $row );
             }
 
+            app.resize();
             $('#compilationModal').modal('hide');
           }
 
@@ -188,8 +192,6 @@
             success: successCallback,
             error: function() {
               alert('Unable to save: Connection error');
-
-              successCallback(); // TODO REMOVE ME
             }
           });
 
@@ -278,11 +280,25 @@
             success: successCallback,
             error: function() {
               alert('Unable to save: Connection error');
-
-              successCallback(); // TODO REMOVE ME
             }
           });
         });
+
+
+        var loadSteps = function() {
+          var steps, i, $row;
+          
+          steps = {{compilationSteps}};
+
+          for (i = 0; i != steps.length; ++i) {
+            $row = buildStep(steps[i]);
+            $('#compilationSteps').append( $row );
+          }
+
+          app.resize();
+        };
+
+        loadSteps();
       });
     </script>
   </body>

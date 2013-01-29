@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="../media/select2/select2.css" rel="stylesheet">
-    <link href="../media/css/config.css" rel="stylesheet">
-  </head>
+  {{&head}}
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next completed" href="submittedFiles.html"><span class="badge badge-success">1</span> Submitted Files</a>
-      <a class="step_container next completed" href="suppliedFiles.html"><span class="badge badge-success">2</span> Supplied Files</a>
-      <a class="step_container next completed" href="compilerOptions.html"><span class="badge badge-success">3</span> Compiler Options</a>
-      <a class="step_container next completed" href="tests.html"><span class="badge badge-success">4</span> Tests</a>
-      <a class="step_container active" href="sharing.html"><span class="badge badge-info">5</span> Sharing</a>
+      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="./?step=suppliedFiles"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next completed" href="./?step=compilerOptions"><span class="badge badge-success">3</span> Compiler Options</a>
+      <a class="step_container next completed" href="./?step=tests"><span class="badge badge-success">4</span> Tests</a>
+      <a class="step_container active" href="./?step=sharing"><span class="badge badge-info">5</span> Sharing</a>
     </div>
 
     <div class="step-container">
@@ -20,15 +16,13 @@
         <legend>
           Sharing Options
         </legend>
-
-
-
+        
         <div class="control-group">
           <label class="control-label" for="sharingOptions">Sharing Options:</label>
           <div class="controls" id="sharingOptions">
-            <label class="radio"><input class="sharingOption" name="sharingOptions" value="public" type="radio" checked>Submission and output are both exhibited</label>
-            <label class="radio"><input class="sharingOption" name="sharingOptions" value="outputOnly" type="radio">Only output is exhibited</label>
-            <label class="radio"><input class="sharingOption" name="sharingOptions" value="private" type="radio">Everything is kept private</label>
+            <label class="radio"><input class="sharingOption" name="sharingOptions" value="public" type="radio" {{#isPublic}}checked{{/isPublic}}>Submission and output are both exhibited</label>
+            <label class="radio"><input class="sharingOption" name="sharingOptions" value="outputOnly" type="radio" {{#isOutputOnlyShared}}checked{{/isOutputOnlyShared}}>Only output is exhibited</label>
+            <label class="radio"><input class="sharingOption" name="sharingOptions" value="private" type="radio" {{#isPrivate}}checked{{/isPrivate}}>Everything is kept private</label>
           </div>
         </div>
 
@@ -38,31 +32,24 @@
           </label>
           <div class="controls">
               <select id="outputExhibited">
-                <!-- TODO: read from server -->
-                <option value="foo">foo (stdout)</option>
-
+                {{#compilationSteps}}
+                <option value="{{name}}">{{name}} (stdout)</option>
+                {{/compilationSteps}}
                 <option value="--file-system">File system file</option>
               </select>
-              <input type="text" id="fileNameInput" placeholder="File Name" disabled>
+              <input type="text" id="fileNameInput" placeholder="File Name" value="{{sharedFile}}" disabled>
           </div>
         </div>
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <a href="done.html" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./?step=done" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
 
-
-    <script type="text/javascript" src="../media/jquery.js"></script>
-    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../media/formToJSON.js"></script>
-    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
       $(document).ready(function() {
-        var saveTarget = './saveSharing';
-
         $('.help-bubble').tooltip();
 
         $('.sharingOption').change(function() {
@@ -95,7 +82,7 @@
           $.ajax( {
             type: "POST",
             data: getSaveData(),
-            url: saveTarget,
+            url: './saveSharing',
             async: false,
             error: function() {
               alert('Unable to save: Connection error');

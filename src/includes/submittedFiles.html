@@ -1,14 +1,9 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link href="../media/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="../media/select2/select2.css" rel="stylesheet">
-    <link href="../media/css/config.css" rel="stylesheet">
-  </head>
+  {{&head}}
   <body>
-    <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next active" href="submittedFiles.html"><span class="badge badge-info">1</span> Submitted Files</a>
+      <a class="step_container next active" href="./?step=submittedFiles"><span class="badge badge-info">1</span> Submitted Files</a>
       <span class="step_container next"><span class="badge">2</span> Supplied Files</span>
       <span class="step_container next"><span class="badge">3</span> Compiler Options</span>
       <span class="step_container next"><span class="badge">4</span> Tests</span>
@@ -22,10 +17,10 @@
           <label class="control-label" for="fileSubmissionMethod">What can be submitted?</label>
           <div class="controls" id="fileSubmissionOptions">
             <label class="radio">
-              <input id="embedOption" type="radio" value="embed" name="fileSubmissionMethod"> A single file is submitted via an embedded editor
+              <input id="embedOption" type="radio" value="embed" name="fileSubmissionMethod" {{#isEmbed}}checked{{/isEmbed}}> A single file is submitted via an embedded editor
             </label>
             <label class="radio">
-              <input id="uploadOption" type="radio" value="upload" name="fileSubmissionMethod"> Multiple files can be uploaded
+              <input id="uploadOption" type="radio" value="upload" name="fileSubmissionMethod" {{#isUpload}}checked{{/isUpload}}> Multiple files can be uploaded
             </label>
           </div>
         </div>
@@ -34,7 +29,7 @@
           <label class="control-label" for="requiredFileNames">Required Files:</label>
           <div class="controls">
             <!-- get value from server -->
-            <input type="text" class="fileEntry" name="requiredFileNames" id="requiredFileNames" placeholder="Required File Names">
+            <input type="text" class="fileEntry" name="requiredFileNames" id="requiredFileNames" placeholder="Required File Names" value="{{requiredFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that must be present for the submission to be accepted."></i></span>
           </div>
         </div>
@@ -43,7 +38,7 @@
           <label class="control-label" for="requiredFileNames">Optional Files:</label>
           <div class="controls">
             <!-- get value from server -->
-            <input type="text" class="fileEntry" name="optionalFileNames" id="optionalFileNames" placeholder="Optional File Names">
+            <input type="text" class="fileEntry" name="optionalFileNames" id="optionalFileNames" placeholder="Optional File Names" value="{{optionalFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that may be submitted but are not required for the submission to be accepted."></i></span>
             <span class="help-block"><code>*</code> may be used as a wildcard
           </div>
@@ -53,7 +48,7 @@
           <label class="control-label" for="precludedFileNames">Precluded Files:</label>
           <div class="controls">
             <!-- get value from server -->
-            <input type="text" class="fileEntry" name="precludedFileNames" id="precludedFileNames" placeholder="Precluded File Names">
+            <input type="text" class="fileEntry" name="precludedFileNames" id="precludedFileNames" placeholder="Precluded File Names" value="{{precludedFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that are not permitted. If a file is submitted with a name matching one from this list (and it is not in the required and optional files lists) then the submission will be rejected."></i></span>
             <span class="help-block"><code>*</code> may be used as a wildcard
           </div>
@@ -64,7 +59,7 @@
           <label class="control-label" for="embeddedFilename">File Name:</label>
           <div class="controls">
             <!-- get value from server -->
-            <input type="text" name="embeddedFilename" value="solution.c" placeholder="File Name">
+            <input type="text" name="embeddedFilename" value="{{singleFileName}}" placeholder="File Name">
           </div>
         </div>
 
@@ -98,7 +93,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <a href="suppliedFiles.html" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./?step=suppliedFiles" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -171,13 +166,7 @@
       </div>
     </div>
 
-    <script type="text/javascript" src="../media/jquery.js"></script>
-    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../media/formToJSON.js"></script>
-    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
-      var saveTarget = './saveSubmittedFiles';
-
       var multiFile = false;
       var editingStep = null;
 
@@ -214,6 +203,7 @@
             $prevElement.replaceWith( $row );
           }
 
+          app.resize();
           $('#preprocessingModal').modal('hide');
         };
 
@@ -235,8 +225,6 @@
           success: successCallback,
           error: function() {
             alert('Unable to save: Connection error');
-
-            successCallback(); // TODO REMOVE ME
           }
         });
 
@@ -369,8 +357,6 @@
             success: callback,
             error: function() {
               alert('Unable to save: Connection error');
-
-              callback(); // TODO REMOVE ME
             }
           });
         });
@@ -397,8 +383,6 @@
               success: callback,
               error: function() {
                 alert('Unable to save: Connection error');
-
-                callback(); // TODO REMOVE ME
               }
             });
           });
@@ -422,8 +406,6 @@
             success: successCallback,
             error: function() {
               alert('Unable to save: Connection error');
-
-              successCallback(); // TODO REMOVE ME
             }
           });
         });
@@ -437,6 +419,7 @@
             $('#modalFilesContainer').hide();
             $('.filesColumn').hide();
             multiFile = false;
+            app.resize();
           } else if (selectedOption === 'upload') {
             $('.fileEntry').select2('enable');
             $('.fileEntryContainer').show();
@@ -444,6 +427,7 @@
             $('#modalFilesContainer').show();
             $('.filesColumn').show();
             multiFile = true;
+            app.resize();
           }
         });
 
@@ -467,9 +451,9 @@
 
           data = {
             multiFile: $('#uploadOption').prop('checked'),
-            requiredFileNames: $('#requiredFileNames').val(),
-            optionalFileNames: $('#optionalFileNames').val(),
-            precludedFileNames: $('#precludedFileNames').val()
+            requiredFiles: $('#requiredFileNames').val(),
+            optionalFiles: $('#optionalFileNames').val(),
+            precludedFiles: $('#precludedFileNames').val()
           };
 
           console.log( data );
@@ -481,7 +465,7 @@
           $.ajax( {
             type: "POST",
             data: getSaveData(),
-            url: saveTarget,
+            url: './saveSubmittedFiles',
             async: false,
             error: function() {
               alert('Unable to save: Connection error');
@@ -489,10 +473,23 @@
           });
         };
 
+        var loadSteps = function() {
+          var steps, i, $row;
+          
+          steps = {{preprocessingSteps}};
+
+          for (i = 0; i != steps.length; ++i) {
+            $row = buildPreprocessingStep(steps[i]);
+            $('#preprocessingSteps').append( $row );
+          }
+          app.resize();
+        };
+
+        loadSteps();
+
         $(window).unload(function() {
           save();
         });
-
       });
     </script>
   </body>
