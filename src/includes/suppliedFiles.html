@@ -4,8 +4,8 @@
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
-      <a class="step_container next active" href="./?step=suppliedFiles"><span class="badge badge-info">2</span> Supplied Files</a>
+      <a class="step_container next completed" href="./configure?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next active" href="./configure?step=suppliedFiles"><span class="badge badge-info">2</span> Supplied Files</a>
       <span class="step_container next"><span class="badge">3</span> Compiler Options</span>
       <span class="step_container next"><span class="badge">4</span> Tests</span>
       <span class="step_container"><span class="badge">5</span> Sharing</span>
@@ -87,7 +87,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <a href="./?step=compilerOptions" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./configure?step=compilerOptions" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -253,6 +253,7 @@
               } ];
               */
 
+              $('#compilationFileList').empty();
               $('#fileSystemFileList').empty();
               populateFileTables();
               app.resize();

@@ -1,7 +1,7 @@
 include('mustache.js');
 include('helpers.js');
 
-var steps, renderStep, accessDenied, view;
+var steps, renderStep, accessDenied, view, setDefault, escapeHTML, escapeObjectHTML;
 
 // steps which can be rendered
 steps = {
@@ -31,7 +31,7 @@ steps = {
 	},
 	'tests': {
 		template: 'tests.html',
-		fields: ['tests']
+		fields: ['tests', 'compilationSteps']
 	},
 	'sharing': {
 		template: 'sharing.html',
@@ -68,6 +68,43 @@ view.head += '<script type="text/javascript" src="/common/select2/select2.min.js
 
 view.head += '</head>\n';
 
+escapeHTML = function(string) {
+	var escapeMap = {
+    	"&": "&amp;",
+    	"<": "&lt;",
+    	">": "&gt;",
+    	'"': '&quot;',
+    	"'": '&#39;'
+  	};
+
+	return String(string).replace(/&(?!\w+;)|[<>"']/g, function (s) {
+  		return escapeMap[s] || s;
+	});
+};
+
+escapeObjectHTML = function(obj) {
+	var key;
+	for (key in obj) {
+		if (obj.hasOwnProperty(key)) {
+			if (typeof obj[key] === 'string') {
+				obj[key] = escapeHTML(obj[key]);
+			} else if (typeof obj[key] === 'object') {
+				obj[key] = escapeObjectHTML(obj[key]);
+			}
+		}
+	}
+	return obj;
+};
+
+setDefaults = function(obj, defaultValues) {
+	var key;
+	for (key in defaultValues) {
+		if (defaultValues.hasOwnProperty(key) && obj[key] == null) {
+			obj[key] = defaultValues[key];
+		}
+	}
+};
+
 renderStep = function() {
 	var step, stepData, template, page, pageData, i, field;
 
@@ -84,41 +121,40 @@ renderStep = function() {
 	page = OpenLearning.page.getData( request.user );
 	pageData = page.data;
 
-	if (pageData.configured) {
-		// consolidate page data booleans
-		pageData.isEmbed = !pageData.multiFile;
-		pageData.isUpload = pageData.multiFile;
-		pageData.isPublic = pageData.sharing === 'public';
-		pageData.isOutputOnlyShared = pageData.sharing === 'output';
-		pageData.isPrivate = pageData.sharing === 'private';
+	// set defaults
+	setDefaults(pageData, {
+		multiFile: false,
+		sharedFile: '',
+		singleFileName: 'solution.c',
+		isEmbed: true,
+		isUpload: false,
+		isPublic: true,
+		isOutputOnlyShared: false,
+		isPrivate: false,
+		requiredFiles: [],
+		optionalFiles: [],
+		precludedFiles: [],
+		preprocessingSteps: [],
+		compilationSteps: [],
+		tests: []
+	});
 
-		// consolidate page data text
-		pageData.requiredFiles = pageData.requiredFiles.join(',');
-		pageData.optionalFiles = pageData.optionalFiles.join(',');
-		pageData.precludedFiles = pageData.precludedFiles.join(',');
+	// consolidate page data booleans
+	pageData.isEmbed = !pageData.multiFile;
+	pageData.isUpload = pageData.multiFile;
+	pageData.isPublic = pageData.sharing === 'public';
+	pageData.isOutputOnlyShared = pageData.sharing === 'output';
+	pageData.isPrivate = pageData.sharing === 'private';
 
-		// consolidate page data json
-		pageData.preprocessingSteps = JSON.stringify(pageData.preprocessingSteps);
-		pageData.compilationSteps = JSON.stringify(pageData.compilationSteps);
-		pageData.tests = JSON.stringify(pageData.tests);
-	} else {
-		// set defaults
-		pageData.multiFile = false;
-		pageData.sharedFile = '';
-		pageData.singleFileName = 'solution.c';
+	// consolidate page data text
+	pageData.requiredFiles = pageData.requiredFiles.join(',');
+	pageData.optionalFiles = pageData.optionalFiles.join(',');
+	pageData.precludedFiles = pageData.precludedFiles.join(',');
 
-		pageData.isEmbed = true;
-		pageData.isUpload = false;
-		pageData.isPublic = true;
-		pageData.isOutputOnlyShared = false;
-		pageData.isPrivate = false;
-		pageData.requiredFiles = '';
-		pageData.optionalFiles = '';
-		pageData.precludedFiles = '';
-		pageData.preprocessingSteps = '[]';
-		pageData.compilationSteps = '[]';
-		pageData.tests = '[]';
-	}
+	// consolidate page data json
+	pageData.preprocessingSteps = JSON.stringify(escapeObjectHTML(pageData.preprocessingSteps));
+	pageData.compilationSteps = JSON.stringify(escapeObjectHTML(pageData.compilationSteps));
+	pageData.tests = JSON.stringify(escapeObjectHTML(pageData.tests));
 
 
 	// get the required template for this step

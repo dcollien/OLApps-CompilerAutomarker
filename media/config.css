@@ -129,3 +129,7 @@ a.step_container.next:hover:after {
 .help-reveal:hover {
   background: #e4e4e4;
 }
+
+.modal-backdrop {
+  background-color: white !important;
+}

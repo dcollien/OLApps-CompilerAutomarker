@@ -4,9 +4,9 @@
   <body>
     <!-- if this has been filled in before, remove next class and "configured"-->
     <div class="nav-steps">
-      <a class="step_container next completed" href="./?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
-      <a class="step_container next completed" href="./?step=suppliedFiles"><span class="badge badge-success">2</span> Supplied Files</a>
-      <a class="step_container next active" href="./?step=compilerOptions"><span class="badge badge-info">3</span> Compiler Options</a>
+      <a class="step_container next completed" href="./configure?step=submittedFiles"><span class="badge badge-success">1</span> Submitted Files</a>
+      <a class="step_container next completed" href="./configure?step=suppliedFiles"><span class="badge badge-success">2</span> Supplied Files</a>
+      <a class="step_container next active" href="./configure?step=compilerOptions"><span class="badge badge-info">3</span> Compiler Options</a>
       <span class="step_container next"><span class="badge">4</span> Tests</span>
       <span class="step_container"><span class="badge">5</span> Sharing</span>
     </div>
@@ -29,7 +29,7 @@
                   <th>
                     Description
                   </th>
-                  <th>
+                  <th id="filesHeader">
                     Files
                   </th>
                   <th>
@@ -49,7 +49,7 @@
 
         <div class="form-actions">
           <!-- if it's been filled in before, make this say "Save" -->
-          <a href="./?step=tests" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./configure?step=tests" class="btn btn-primary pull-right">Next &rarr;</a>
         </div>
       </form>
     </div>
@@ -61,6 +61,7 @@
       </div>
       <div class="modal-body">
         <form class="form-horizontal">
+          <input type="hidden" id="compilationOldName" name="compilationOldName" value="">
           <input type="hidden" id="isNew" name="isNew" value="false">
           <div class="control-group">
             <label class="control-label" for="compilationName">Program Title:</label>
@@ -107,10 +108,6 @@
       </div>
     </div>
 
-    <script type="text/javascript" src="../media/jquery.js"></script>
-    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../media/formToJSON.js"></script>
-    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
       $(document).ready(function() {
         $('.help-bubble').tooltip();
@@ -143,6 +140,7 @@
           console.log( 'populating with:', step );
 
           $('#compilationName').val(step.name);
+          $('#compilationOldName').val(step.name);
           $('#compilationDescription').val(step.description);
           $('#compilationFiles').select2('val', step.files);
           $('#compilationFlags').select2('val', step.flags);
@@ -154,6 +152,7 @@
           var $row, step, $prevElement;
           
           step = {
+            oldName: $('#compilationOldName').val(),
             name: $('#compilationName').val(),
             description: $('#compilationDescription').val(),
             files: $('#compilationFiles').val().split(','),
@@ -175,14 +174,16 @@
             $('#compilationModal').modal('hide');
           }
 
-          console.log('saving: ', step);
 
           var stepData = {
+            oldName: step.oldName,
             name: step.name,
             description: step.description,
             files: step.files.join(','),
             flags: step.flags.join(',')
           };
+
+          console.log('saving: ', stepData);
 
           $.ajax( {
             type: "POST",
@@ -286,13 +287,21 @@
 
 
         var loadSteps = function() {
-          var steps, i, $row;
+          var steps, stepData, i, $row;
           
-          steps = {{compilationSteps}};
+          steps = {{&compilationSteps}};
 
           for (i = 0; i != steps.length; ++i) {
+            stepData = steps[i];
+            stepData.flags = stepData.flags.split(',');
+            stepData.files = stepData.files.split(',');
+
             $row = buildStep(steps[i]);
             $('#compilationSteps').append( $row );
+          }
+
+          if (!multiFile) {
+            $('#filesHeader').hide();
           }
 
           app.resize();

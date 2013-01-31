@@ -20,3 +20,4 @@ var checkPermission = function( permission, success, denied ) {
 		denied();
 	}
 };
+
