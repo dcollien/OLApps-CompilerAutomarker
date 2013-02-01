@@ -137,7 +137,7 @@
         });
         
         var populateModal = function(step) {
-          console.log( 'populating with:', step );
+          //console.log( 'populating with:', step );
 
           $('#compilationName').val(step.name);
           $('#compilationOldName').val(step.name);
@@ -160,7 +160,7 @@
           };
 
           var successCallback = function() {
-            console.log( 'replacing:', $prevElement );
+            //console.log( 'replacing:', $prevElement );
             $row = buildStep(step);
 
             if ($('#isNew').val() === 'true' ) {
@@ -183,7 +183,7 @@
             flags: step.flags.join(',')
           };
 
-          console.log('saving: ', stepData);
+          //console.log('saving: ', stepData);
 
           $.ajax( {
             type: "POST",
@@ -270,7 +270,8 @@
             $(step.element).remove();
           }
 
-          console.log('deleting:', step);$.ajax( {
+          //console.log('deleting:', step);
+          $.ajax( {
             type: "POST",
             data: {
               stepName: step.name,
@@ -289,7 +290,7 @@
         var loadSteps = function() {
           var steps, stepData, i, $row;
           
-          steps = {{&compilationSteps}};
+          steps = {{&compilationStepsJSON}};
 
           for (i = 0; i != steps.length; ++i) {
             stepData = steps[i];

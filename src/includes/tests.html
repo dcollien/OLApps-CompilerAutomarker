@@ -188,17 +188,13 @@
       </div>
     </div>
 
-    <script type="text/javascript" src="../media/jquery.js"></script>
-    <script type="text/javascript" src="../media/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../media/formToJSON.js"></script>
-    <script type="text/javascript" src="../media/select2/select2.min.js"></script>
     <script type="text/javascript">
       $(document).ready(function() {  
         var isNew = true;
         var editingTest = null;
 
         var populateModal = function(test) {
-          console.log( 'populating with:', test );
+          //console.log( 'populating with:', test );
 
           $('#testOldName').val(test.name);
           $('#testName').val(test.name);
@@ -222,6 +218,11 @@
           $('#testFeedbackSuccess').val(test.feedbackSuccess);
           $('#testFeedbackStdoutFail').val(test.feedbackStdoutFail);
           $('#testFeedbackExitCodeFail').val(test.feedbackExitCodeFail);
+
+
+          $('#testIgnoreStdout').change();
+          $('#testIgnoreWhitespace').change();
+          $('#testIgnoreExitCode').change();
 
           isNew = false;
           editingTest = test;
@@ -264,7 +265,7 @@
             $('#testModal').modal('hide');
           }
 
-          console.log('saving: ', test);
+          //console.log('saving: ', test);
           $.ajax( {
             type: "POST",
             data: test,
@@ -431,12 +432,20 @@
         });
 
         var loadTests = function() {
-          var steps, i, $row;
+          var steps, i, key, $row;
           
-          tests = {{&tests}};
+          tests = {{&testsJSON}};
 
           for (i = 0; i != tests.length; ++i) {
-            $row = buildStep(tests[i]);
+
+            // consolidate boolean strings
+            for (key in tests[i]) {
+              if (tests[i].hasOwnProperty(key) && (tests[i][key] === 'true' || tests[i][key] === 'false')) {
+                tests[i][key] = (tests[i][key] === 'true');
+              }
+            }
+
+            $row = buildTestRow(tests[i]);
             $('#testsListing').append( $row );
           }
           app.resize();

@@ -42,10 +42,11 @@
                 </tr>
               </thead>
               <tbody id="compilationFileList">
+                <tr><td colspan="4"><p align="center"><img src="{{spinner}}"></p></td></tr>
               </tbody>
             </table>
 
-            <a href="{{addSourceURL}}" target="_blank" class="btn">Add/Change Source Files</a>
+            <a href="{{addSourceURL}}?action=edit&editor=multi-file" target="_blank" class="btn">Add/Change Source Files</a>
           </div>
         </div>
 
@@ -78,10 +79,11 @@
                 </tr>
               </thead>
               <tbody id="fileSystemFileList">
+                <tr><td colspan="5"><p align="center"><img src="{{spinner}}"></p></td></tr>
               </tbody>
             </table>
 
-            <a href="{{addFileSystemURL}}" target="_blank" class="btn">Add/Change Run-time Files</a>
+            <a href="{{addFileSystemURL}}?action=edit&editor=multi-file" target="_blank" class="btn">Add/Change Run-time Files</a>
           </div>
         </div>
 
@@ -204,8 +206,10 @@
 
         var getSaveData = function() {
           return {
-            compilationFiles: compilationFiles,
-            fileSystemFiles: fileSystemFiles
+            json: JSON.stringify({
+              compilationFiles: compilationFiles,
+              fileSystemFiles: fileSystemFiles
+            })
           };
         };
 

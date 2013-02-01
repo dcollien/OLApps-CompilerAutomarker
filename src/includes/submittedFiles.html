@@ -172,7 +172,7 @@
       var editingStep = null;
 
       var populatePreprocessingModal = function(step) {
-        console.log( 'populating with:', step );
+        //console.log( 'populating with:', step );
 
         $('#newPreprocessorAction').val(step.action).change();
         $('#newPreprocessorOldName').val(step.name);
@@ -210,7 +210,7 @@
           $('#preprocessingModal').modal('hide');
         };
 
-        console.log('saving: ', step);
+        //console.log('saving: ', step);
 
         var stepData = {
           oldName: step.oldName,
@@ -281,6 +281,8 @@
       };
 
       $(document).ready(function() {
+        var changeFileSubmissionOptions;
+
         $('.fileEntry').select2({
           width: '90%',
           minimumInputLength: 2,
@@ -349,7 +351,7 @@
             $prevRow.before($row); 
           }
 
-          console.log('moving up:', step);
+          //console.log('moving up:', step);
           $.ajax( {
             type: "POST",
             data: {
@@ -375,7 +377,7 @@
             $nextRow.after($row);
           }
 
-          console.log('moving down:', step);
+          //console.log('moving down:', step);
           $.ajax( {
               type: "POST",
               data: {
@@ -398,7 +400,7 @@
             $(step.element).remove();
           }
 
-          console.log('deleting:', step);
+          //console.log('deleting:', step);
           $.ajax( {
             type: "POST",
             data: {
@@ -414,7 +416,7 @@
           });
         });
 
-        $('#fileSubmissionOptions input:radio').change(function() {
+        changeFileSubmissionOptions = function() {
           var selectedOption = $('#fileSubmissionOptions input:radio:checked').val();
           if (selectedOption === 'embed') {
             $('.fileEntry').select2('disable');
@@ -433,7 +435,9 @@
             multiFile = true;
             app.resize();
           }
-        });
+        };
+
+        $('#fileSubmissionOptions input:radio').change(changeFileSubmissionOptions);
 
         $('.help-bubble').tooltip();
 
@@ -441,26 +445,23 @@
           $(this).parent().next().slideToggle();
         } );
 
-
-        if (true) {
-          $('#embedOption').prop('checked', true);
-        } else {
+        if ({{#isUpload}}true{{/isUpload}}{{^isUpload}}false{{/isUpload}}) {
           $('#uploadOption').prop('checked', true);
+        } else {
+          $('#embedOption').prop('checked', true);
         }
-        $('#fileSubmissionOptions input:radio').change();
-
 
         var getSaveData = function() {
           var data;
 
           data = {
-            multiFile: $('#uploadOption').prop('checked'),
+            multiFile: multiFile,
             requiredFiles: $('#requiredFileNames').val(),
             optionalFiles: $('#optionalFileNames').val(),
             precludedFiles: $('#precludedFileNames').val()
           };
 
-          console.log( data );
+          //console.log( data );
 
           return data;
         };
@@ -480,7 +481,7 @@
         var loadSteps = function() {
           var steps, i, $row;
           
-          steps = {{&preprocessingSteps}};
+          steps = {{&preprocessingStepsJSON}};
 
           for (i = 0; i != steps.length; ++i) {
             $row = buildPreprocessingStep(steps[i]);
@@ -490,6 +491,8 @@
         };
 
         loadSteps();
+
+        changeFileSubmissionOptions();
 
         $(window).unload(function() {
           save();

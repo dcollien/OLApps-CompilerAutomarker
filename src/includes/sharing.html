@@ -35,7 +35,7 @@
                 {{#compilationSteps}}
                 <option value="{{name}}" {{#exhibited}}selected{{/exhibited}}>{{name}} (stdout)</option>
                 {{/compilationSteps}}
-                <option value="--file-system" {{#isFileSytemExhibited}}selected{{/isFileSystemExhibited}}>File system file</option>
+                <option value="--file-system" {{#isFileSystemExhibited}}selected{{/isFileSystemExhibited}}>File system file</option>
               </select>
               <input type="text" id="fileNameInput" placeholder="File Name" value="{{sharedFile}}" disabled>
           </div>
@@ -50,19 +50,25 @@
 
     <script type="text/javascript">
       $(document).ready(function() {
-        $('.help-bubble').tooltip();
+        var changeSharingOptions, changeOutput;
 
-        $('.sharingOption').change(function() {
+        changeOutput = function() {
+          $('#fileNameInput').prop('disabled', $(this).val() !== '--file-system');
+        };
+
+        changeSharingOptions = function() {
           $('#outputExhibited').prop('disabled', $(this).val() === 'private');
 
           if ($('#outputExhibited').val() === '--file-system') {
             $('#fileNameInput').prop('disabled', $(this).val() === 'private');
           }
-        });
+        };
 
-        $('#outputExhibited').change(function() {
-          $('#fileNameInput').prop('disabled', $(this).val() !== '--file-system');
-        });
+        $('.help-bubble').tooltip();
+
+        $('.sharingOption').change(changeSharingOptions);
+
+        $('#outputExhibited').change(changeOutput);
 
         var getSaveData = function() {
           var data;
@@ -73,7 +79,7 @@
             sharedFile: $('#fileNameInput').val()
           };
 
-          console.log( data );
+          //console.log( data );
 
           return data;
         };
@@ -89,6 +95,9 @@
             }
           });
         };
+
+        changeSharingOptions.call( $('.sharingOption:checked') );
+        changeOutput.call( $('#outputExhibited') );
 
         $(window).unload(function() {
           save();

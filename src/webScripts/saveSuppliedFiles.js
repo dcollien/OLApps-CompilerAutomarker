@@ -1,8 +1,10 @@
 
 try {
+  var requestData = JSON.parse(request.data.json)
+
   var pageUpdate = {
-    compilationFiles: request.data.compilationFiles,
-    fileSystemFiles: request.data.fileSystemFiles
+    compilationFiles: requestData.compilationFiles,
+    fileSystemFiles: requestData.fileSystemFiles
   }
 
   OpenLearning.page.setData(pageUpdate, request.user);

@@ -2,11 +2,11 @@
 try {
   var pageUpdate = {
     multiFile: request.data.multiFile,
-    requiredFiles: request.data.requiredFiles,
-    optionalFiles: request.data.optionalFiles,
-    precludedFiles: request.data.precludedFiles
+    requiredFiles: request.data.requiredFiles.split(','),
+    optionalFiles: request.data.optionalFiles.split(','),
+    precludedFiles: request.data.precludedFiles.split(',')
   };
-
+  
   OpenLearning.page.setData(pageUpdate, request.user);
   response.writeText('success');
 } catch (err) {

@@ -3,10 +3,7 @@ include('loadDirectoryFiles.js');
 var page, pageData;
 
 page = OpenLearning.page.getData( request.user );
-pageData = loadDirectoryFiles( page.data );
-
-pageData = loadDirectoryFiles(pageData, false);
-
+pageData = loadDirectoryFiles( page.data, false );
 
 response.writeJSON({
   compilationFiles: pageData.compilationFiles,

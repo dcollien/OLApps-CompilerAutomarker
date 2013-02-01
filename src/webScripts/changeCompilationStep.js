@@ -1,2 +1,2 @@
-include('changeStep');
+include('changeStep.js');
 changeStep('compilationSteps');

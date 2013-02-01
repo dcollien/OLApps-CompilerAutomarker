@@ -2,8 +2,8 @@ var changeStep = function(fieldName) {
 	try {
 		var data, stepName, action, itemIndex, pageUpdate, tmp;
 
-		stepName = request.data('stepName');
-		action = request.data('action');
+		stepName = request.data.stepName;
+		action = request.data.action;
 
 		data = OpenLearning.page.getData(request.user).data;
 
@@ -34,7 +34,7 @@ var changeStep = function(fieldName) {
 				data[fieldName][itemIndex+1] = tmp;
 			}
 		}
-		
+
 		pageUpdate = {};
 		pageUpdate[fieldName] = data[fieldName];
 

@@ -23,10 +23,10 @@ var loadDirectoryFiles = function(pageData, loadContents) {
 
   consolidateFiles = function(filesPage, pageField, addData) {
     // add any new files to the listing if they've been added to the directories
-    if (filesPage) {
+    if (filesPage && filesPage.files) {
       remainingFileList = [];
 
-      for (i = 0; i != filesPage.files.length, ++i) {
+      for (i = 0; i != filesPage.files.length; ++i) {
         // for each file in the directory
         notFound = true;
         for (j = 0; j != pageData[pageField].length; ++j) {
@@ -65,11 +65,13 @@ var loadDirectoryFiles = function(pageData, loadContents) {
       }
 
       pageData[pageField] = remainingFileList;
+    } else {
+      pageData[pageField] = [];
     }
   };
   
-  consolidateFiles(compilationFilesPage, 'compilationFiles', loadContents);
   consolidateFiles(fileSystemFilesPage, 'fileSystemFiles', loadContents);
+  consolidateFiles(compilationFilesPage, 'compilationFiles', loadContents);
 
   return pageData;
 };
