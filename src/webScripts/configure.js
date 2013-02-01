@@ -40,7 +40,8 @@ steps = {
 			'isOutputOnlyShared',
 			'isPrivate',
 			'sharedFile',
-			'compilationSteps'
+			'compilationSteps',
+      'isFileSystemExhibited'
 		]
 	},
 	'done': {
@@ -136,7 +137,8 @@ renderStep = function() {
 		precludedFiles: [],
 		preprocessingSteps: [],
 		compilationSteps: [],
-		tests: []
+		tests: [],
+    isFileSystemExhibited: false
 	});
 
 	// consolidate page data booleans
@@ -156,6 +158,16 @@ renderStep = function() {
 	pageData.compilationSteps = JSON.stringify(escapeObjectHTML(pageData.compilationSteps));
 	pageData.tests = JSON.stringify(escapeObjectHTML(pageData.tests));
 
+  // select any shared/exhibited outputs
+  if (!pageData.isFileSystemExhibited) {
+    if (pageData.outputExhibited) {
+      for (i = 0; i != pageData.compilationSteps.length, ++i) {
+        if (pageData.outputExhibited === pageData.compilationSteps[i].name) {
+          pageData.compilationSteps[i].exhibited = true;
+        }
+      }
+    }
+  }
 
 	// get the required template for this step
 	template = include(stepData.template);
@@ -168,6 +180,9 @@ renderStep = function() {
 		}
 	}
 
+  view.addSourceURL = page.url + '/MarkingCode';
+  view.addFileSystemURL = page.url + '/FileSystem';
+  
 	render(template, view);
 };
 

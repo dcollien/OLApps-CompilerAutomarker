@@ -1,18 +1,14 @@
-// loadSuppliedFiles
-response.writeJSON({
-  compilationFiles: [ {
-    title: 'Foo',
-    filename: 'foo.c',
-    size: 1024,
-    overwrite: true
-  } ],
+include('loadDirectoryFiles.js');
 
-  fileSystemFiles: [ {
-    title: 'Foo Stuff',
-    filename: 'foo.txt',
-    size: 1024,
-    readable: true,
-    writable: true,
-    overwrite: true
-  } ]
+var page, pageData;
+
+page = OpenLearning.page.getData( request.user );
+pageData = loadDirectoryFiles( page.data );
+
+pageData = loadDirectoryFiles(pageData, false);
+
+
+response.writeJSON({
+  compilationFiles: pageData.compilationFiles,
+  fileSystemFiles: pageData.fileSystemFiles
 });

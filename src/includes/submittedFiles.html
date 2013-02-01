@@ -105,6 +105,7 @@
       </div>
       <div class="modal-body">
         <form class="form-horizontal">
+          <input type="hidden" id="newPreprocessorOldName" value="">
           <input type="hidden" id="isNew" value="true">
           <div class="control-group">
             <label class="control-label" for="newPreprocessorName">Title:</label>
@@ -174,6 +175,7 @@
         console.log( 'populating with:', step );
 
         $('#newPreprocessorAction').val(step.action).change();
+        $('#newPreprocessorOldName').val(step.name);
         $('#newPreprocessorName').val(step.name);
         $('#newPreprocessorFiles').select2("val", step.files);
         $('#newPreprocessorSearch').val(step.search);
@@ -186,6 +188,7 @@
         var $row, step, $prevElement;
         
         step = {
+          oldName: $('#newPreprocessorOldName').val(),
           name: $('#newPreprocessorName').val(),
           files: $('#newPreprocessorFiles').val().split(','),
           search: $('#newPreprocessorSearch').val(),
@@ -210,6 +213,7 @@
         console.log('saving: ', step);
 
         var stepData = {
+          oldName: step.oldName,
           name: step.name,
           action: step.action,
           files: step.files.join(','),

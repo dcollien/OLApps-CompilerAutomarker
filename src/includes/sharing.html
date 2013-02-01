@@ -33,9 +33,9 @@
           <div class="controls">
               <select id="outputExhibited">
                 {{#compilationSteps}}
-                <option value="{{name}}">{{name}} (stdout)</option>
+                <option value="{{name}}" {{#exhibited}}selected{{/exhibited}}>{{name}} (stdout)</option>
                 {{/compilationSteps}}
-                <option value="--file-system">File system file</option>
+                <option value="--file-system" {{#isFileSytemExhibited}}selected{{/isFileSystemExhibited}}>File system file</option>
               </select>
               <input type="text" id="fileNameInput" placeholder="File Name" value="{{sharedFile}}" disabled>
           </div>
@@ -70,7 +70,7 @@
           data = {
             sharing: $('.sharingOption:checked').val(),
             outputExhibited: $('#outputExhibited').val(),
-            fileNameExhibited: $('#fileNameInput').val()
+            sharedFile: $('#fileNameInput').val()
           };
 
           console.log( data );

@@ -1,2 +1,2 @@
-//
-response.writeText('success');
+include('changeStep');
+changeStep('tests');

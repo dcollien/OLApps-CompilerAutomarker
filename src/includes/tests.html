@@ -56,6 +56,7 @@
       </div>
       <div class="modal-body">
         <form class="form-horizontal">
+          <input type="hidden" id="testOldName" value="">
           <div class="control-group">
             <label class="control-label" for="testName">Test Name:</label>
             <div class="controls">
@@ -199,6 +200,7 @@
         var populateModal = function(test) {
           console.log( 'populating with:', test );
 
+          $('#testOldName').val(test.name);
           $('#testName').val(test.name);
           $('#testProgram').val(test.program);
           $('#testArgs').val(test.args);
@@ -229,6 +231,7 @@
           var $row, test, $prevElement;
           
           test = {
+            oldName: $('#testOldName').val(),
             name: $('#testName').val(),
             program: $('#testProgram').val(),
             args: $('#testArgs').val(),

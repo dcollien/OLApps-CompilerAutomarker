@@ -1,2 +1,2 @@
-//
-response.writeText('success');
+include('saveStep.js');
+saveStep('tests');
