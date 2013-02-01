@@ -63,6 +63,11 @@ view.head += '<link href="/common/bootstrap/css/bootstrap.css" rel="stylesheet">
 view.head += '<link href="/common/select2/select2.css" rel="stylesheet">\n';
 view.head += '<link href="' + mediaURL('config.css') + '" rel="stylesheet">\n';
 
+view.head += '<script type="text/javascript">\n';
+view.head += 'alert = function(text) {\n';
+view.head += '  window.app.sendMessage("notify", { "title": "Error", "text": text, "type": "error" })\n';
+view.head += '};';
+view.head += '</script>'
 view.head += '<script type="text/javascript" src="/common/jquery.min.js"></script>\n';
 view.head += request.appInitScript + '\n';
 view.head += '<script type="text/javascript" src="/common/bootstrap/js/bootstrap.min.js"></script>\n';
