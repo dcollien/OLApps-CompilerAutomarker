@@ -53,9 +53,10 @@ var loadDirectoryFiles = function(pageData, loadContents) {
             size: filesPage.files[i].size,
             overwrite: true,
             readable: true,
-            writable: false
+            writable: false,
+            encoding: filesPage.files[i].encoding
           };
-
+          
           if (addData) {
             fileData.data = filesPage.files[i].data;
           }
