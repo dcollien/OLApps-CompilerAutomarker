@@ -6,10 +6,17 @@
     
     <script src="./jquery.min.js"></script>
     <script src="./bootstrap/js/bootstrap.min.js"></script>
+    <script src="./bootbox.min.js"></script>
     <script src="./codemirror.js"></script>
     <script src="./clike.js"></script>
 
     <style type="text/css">
+      .modal-backdrop {
+        background-color: white !important;
+      }
+      .activeline {
+        background: #e8f2ff !important;
+      }
       .CodeMirror {
         border: 1px solid #eee;
         height: auto;
@@ -41,9 +48,30 @@
         padding-bottom: 8px;
         color: #666;
       }
+      .title {
+        height: 32px;
+      }
     </style>
   </head>
   <body>
+    <div class="title well well-small">
+      <div class="status compiling-status hide">
+        <span class="lead"><img src="./compiling.gif"> Compiling</span>
+        ...&nbsp; Your code is compiling. Results will appear here shortly.
+      </div>
+      <div class="status running-status hide">
+        <span class="lead"><img src="./running.gif"> Running</span>
+        ...&nbsp; Performing Dry-Run tests on your code.
+      </div>
+      <div class="status submitting-status hide">
+        <span class="lead"><img src="./submitting.gif"> Submitting</span>
+        ...&nbsp; Submitting your code to be tested further.
+      </div>
+      <div class="status marking-status hide">
+        <span class="lead"><img src="./waiting.gif"> Running Tests</span>
+        ...&nbsp; Tests are currently being run on your code. Results will appear here shortly.
+      </div>
+    </div>
     <div class="container-fluid">
       <div class="row-fluid">
         <div class="span2">
@@ -54,11 +82,10 @@
           </ul>
         </div>
         <div class="span10">
-
           <div class="btn-toolbar">
             <div class="pull-right">
               <div class="btn-group">
-                <button class="btn toolbar-button btn-success" title="Submit">Save, Submit and Run Tests &raquo;</button>
+                <button class="btn toolbar-button btn-success" title="Submit" id="submit-btn">Submit and Run Tests &raquo;</button>
               </div>
             </div>
           </div>
@@ -73,6 +100,7 @@
             </div>
             <div class="btn-group">
               <button id="compile-btn" class="btn toolbar-button" title="Compile"><img src="./compile.png"></button>
+              <button id="run-btn" class="btn toolbar-button" title="Dry-Run" disabled><i class="icon-play"></i></button>
             </div>
           </div>
 
@@ -86,17 +114,36 @@
     </div>
 
     <script>
-      var editor;
+      var editor, saveDocument, isSaved, doSubmit, currentFileName;
+      var compileComplete;
+
+      currentFileName = 'foo.c';
+
+      compileComplete = function() {
+        $('#run-btn').prop('disabled', false);
+        $('#compile-btn').prop('disabled', false);
+        $('.compiling-status').fadeOut();
+      };
+
+      saveDocument = function() {
+        alert("TODO: Save");
+        isSaved = true;
+      };
+
+      doSubmit = function() {
+        alert("TODO: Submit");
+      };
 
       editor = CodeMirror.fromTextArea($("#fileEditor")[0], {
         lineNumbers: true,
         mode: "text/x-csrc",
         indentUnit: 3,
+        lineWrapping: true,
         tabSize: 3,
         smartIndent: true,
         indentWithTabs: false,
         extraKeys: {
-          "Tab" : function(instance) {
+          "Tab": function(instance) {
             var spaces;
             if (instance.somethingSelected()) {
               CodeMirror.commands.indentMore(instance);
@@ -108,10 +155,22 @@
                 instance.replaceSelection(spaces, "end", "+input") 
               }
             }
-          }
+          },
+          "Cmd-S": saveDocument,
+          "Ctrl-S": saveDocument
         },
         onUpdate: function( ) {
+          isSaved = false;
           //window.app.resize();
+        }
+      });
+
+      var hlLine = editor.addLineClass(0, "background", "activeline");
+      editor.on("cursorActivity", function() {
+        var cur = editor.getLineHandle(editor.getCursor().line);
+        if (cur != hlLine) {
+          editor.removeLineClass(hlLine, "background", "activeline");
+          hlLine = editor.addLineClass(cur, "background", "activeline");
         }
       });
 
@@ -119,8 +178,26 @@
         $('.toolbar-button').mouseover(function(){
           $('#help-text').text($(this).attr('title'));
         }).mouseout(function(){
-          $('#help-text').text('');
+          $('#help-text').empty().append('Editing ').append( $('<b>').text(currentFileName) );
         });
+
+        $('.toolbar-button').mouseout();
+
+        $('#save-btn').click(function(){
+          saveDocument();
+        });
+
+        $('#compile-btn').click(function(){
+          $(this).prop('disabled', true);
+          $('#run-btn').prop('disabled', true);
+          $('.compiling-status').fadeIn();
+          // TODO Compile
+          setTimeout( compileComplete, 2000 );
+        });
+
+        $('#run-btn').click(function(){
+          alert("TODO: Run");
+        })
 
         $('#undo-btn').click(function(){
           editor.undo();
@@ -130,6 +207,42 @@
           editor.redo();
         });
 
+        $('#submit-btn').click(function() {
+          if (!isSaved) {
+            bootbox.dialog(
+              'This document has not been saved. Would you like to save changes before submitting?',
+              [{
+                'label': 'Cancel'
+              },
+              {
+                'label': 'Submit Without Saving',
+                'class': 'btn-primary',
+                'callback': function() {
+                  doSubmit();
+                }
+              },
+              {
+                'label': 'Save and Submit',
+                'class': 'btn-success',
+                'callback': function() {
+                  saveDocument();
+                  doSubmit();
+                }
+              }]
+            );
+          } else {
+            doSubmit();
+          }
+        });
+
+        // TODO: see if compiled
+        $('#run-btn').prop('disabled', true);
+
+        window.onbeforeunload = function() {
+          if (!isSaved) {
+            return 'This document has not been saved.';
+          }
+        };
       });
     </script>
   </body>

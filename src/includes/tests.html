@@ -75,6 +75,16 @@
             </div>
           </div>
 
+          <div class="control-group">
+            <label class="control-label" for="testDryRun">Dry-Run:</label>
+            <div class="controls">
+              <label class="checkbox">
+                <input type="checkbox" name="testDryRun" id="testDryRun">
+                Include in Dry-Run (ability to run this test client-side before submission)
+              </label>
+            </div>
+          </div>
+
           <hr>
 
           <ul class="nav nav-tabs">
@@ -199,6 +209,7 @@
           $('#testOldName').val(test.name);
           $('#testName').val(test.name);
           $('#testProgram').val(test.program);
+          $('#testDryRun').prop('checked', test.dryRun);
           $('#testArgs').val(test.args);
           $('#testStdin').val(test.stdin);
           $('#testStdout').val(test.stdout);
@@ -248,7 +259,8 @@
             ignoreTrailing: $('#testIgnoreTrailing').prop('checked'),
             feedbackSuccess: $('#testFeedbackSuccess').val(),
             feedbackStdoutFail: $('#testFeedbackStdoutFail').val(),
-            feedbackExitCodeFail: $('#testFeedbackExitCodeFail').val()
+            feedbackExitCodeFail: $('#testFeedbackExitCodeFail').val(),
+            dryRun: $('#testDryRun').prop('checked')
           };
 
           var successCallback = function() {
