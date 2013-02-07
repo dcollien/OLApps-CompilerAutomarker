@@ -100,7 +100,8 @@
         </div>
         <div class="tab-pane feedback-pane" id="dry-run-results">
           <h4>Result of the last dry-run:</h4>
-          TODO: dry-run results
+          <div id="dry-run-results">
+          </div>
         </div>
         <div class="tab-pane feedback-pane" id="testing-results">
           <h4>Result of the last submission:</h4>
@@ -115,10 +116,10 @@
       <div class="row-fluid">
         <div class="span2">
           <ul class="nav nav-list files-list">
-            <li class="nav-header">Source Files</li>
-            <li class="active"><a href="#">foo.c</a></li>
-            <li><a href="#">bar.c</a></li>
           </ul>
+          <br/>
+          <hr/>
+          <button class="btn btn-mini" id="upload"><i class="icon-upload"></i> Upload</button>
         </div>
         <div class="span10">
           <div class="btn-toolbar">
@@ -135,7 +136,7 @@
             </div>
             <div class="btn-group">
               <button id="undo-btn" class="btn toolbar-button" title="Undo"><img src="{{undo_icon}}"></button>
-              <button id="redo-btn" class="btn toolbar-button" title="Redo"><img src="{{redo_icon}}"></i></button>
+              <button id="redo-btn" class="btn toolbar-button" title="Redo"><img src="{{redo_icon}}"></button>
             </div>
             <div class="btn-group">
               <button id="compile-btn" class="btn toolbar-button" title="Compile"><img id="compile-icon" src="{{compile_icon}}"></button>
@@ -159,7 +160,7 @@
       demoFiles['bar.c'] = "This is Bar";
 
       var submissionFiles;
-      var loadDocument, doLoad;
+      var loadDocument, doLoad, populateFileList;
 
       var compiledImg, compileImg;
       var editor, saveDocument, isSaved, doSubmit, currentFileName;
@@ -168,16 +169,20 @@
 
       compileImg = '{{compile_icon}}';
       compiledImg = '{{compiled_icon}}';
-
-      // TODO populate from template
-      submissionFiles = [{
-        filename: 'foo.c'
-      },
-      {
-        filename: 'bar.c'
-      }];
+      
+      submissionFiles = {{&filesJSON}};
 
       currentFileName = submissionFiles[0].filename;
+
+      populateFileList = function(files) {
+        var i;
+        var $list = $('.files-list');
+        $list.html('<li class="nav-header">Files</li>');
+
+        for (i = 0; i != files.length; ++i) {
+          $list.append($('<li>').append($('<a href="#">').text(files[i].filename)));
+        }
+      };
 
       doLoad = function(filename) {
         editor.setValue( demoFiles[filename] );
@@ -277,7 +282,7 @@
         $('#dry-run-tab').tab('show');
       };
 
-      runFailure = function() {
+      runFailure = function(result) {
         $('#run-btn').prop('disabled', false);
         $('#compile-btn').prop('disabled', false);
         $('.status').hide();
@@ -288,6 +293,7 @@
         $('.feedback').slideDown();
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
+        $('#dry-run-results').text(result.error);
       };
 
       saveDocument = function() {
@@ -364,7 +370,7 @@
       editor.on("change", function() {
           isSaved = false;
           $('#compile-icon').attr('src', compileImg);
-          //window.app.resize();
+          window.app.resize();
       });
 
       var hlLine = editor.addLineClass(0, "background", "activeline");
@@ -416,7 +422,7 @@
             setTimeout( runComplete, 2000 );
           } else {
             setTimeout( function() {
-              runFailure({ error: 'Didn\'t pass tests, damn'});
+              runFailure({ error: "Didn't pass tests, damn"});
             }, 2000 );
           }
         })
@@ -469,13 +475,30 @@
         $('#run-btn').prop('disabled', true);
 
         isSaved = true;
+        populateFileList(submissionFiles);
         loadDocument(currentFileName, function() {});
+
+        $('#upload').click(function() {
+          var uploadDialog = window.open('{{ submissionURL }}?action=attachDialog','dialog', 'width=480,height=240,directories=0,titlebar=0,toolbar=0,location=0,status=0,menubar=0,scrollbars=no,resizable=no');
+        });
+
+
 
         window.onbeforeunload = function() {
           if (!isSaved) {
             return 'This document has not been saved.';
           }
         };
+
+        window.app.onMessage('close', function() {
+          // TODO: load submission files
+          populateFileList(submissionFiles);
+          $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
+        });
+
+        window.app.resize();
+
+        $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
       });
     </script>
   </body>

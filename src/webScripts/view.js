@@ -5,7 +5,6 @@ include('escape.js');
 var view;
 var accessDenied, renderEditor;
 
-
 // set up the default view
 view = {
   head: '',
@@ -47,18 +46,38 @@ view.head += request.appInitScript + '\n';
 view.head += '<script type="text/javascript" src="/common/select2/select2.min.js"></script>\n';
 
 
-
 renderEditor = function() {
-  var template = include('editor.html');
-  render(template, view);
+  var page, pageData, submissionPage, submission, files, i;
+  // download page data
+  page = OpenLearning.page.getData(request.user);
+  pageData = page.data;
+
+  submissionPage = OpenLearning.activity.getSubmission(request.user, []); // no file reads
+  submission = submissionPage.submission;
+
+  files = submission.files;
+
+  view.submissionURL = submissionPage.url;
+
+  view.files = [];
+
+  if (submission.files) {
+    for (i = 0; i != files.length; ++i) {
+      view.files.push({
+        filename: files[i].filename,
+        size: files[i].size
+      });
+    }
+  }
+
+  view.filesJSON = JSON.stringify(escapeObjectHTML(view.files));
+  
+  render(include('editor.html'), view);
 };
 
 accessDenied = function() {
-  var template;
-  
-  template = include('accessDenied.html');
-  render(template, view);
+  render(include('accessDenied.html'), view);
 };
 
 // check for write permission and render
-checkPermission('write', renderEditor, accessDenied);
+checkPermission('read', renderEditor, accessDenied);
