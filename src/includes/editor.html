@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {{&head}}
+
+    <style type="text/css">
+      .modal-backdrop {
+        background-color: white !important;
+      }
+      .activeline {
+        background: #e8f2ff !important;
+      }
+      .CodeMirror {
+        border: 1px solid #eee;
+        height: auto;
+        width: 100%;
+      }
+      .CodeMirror-gutters {
+        border: none;
+      }
+      .CodeMirror-scroll {
+        overflow-y: hidden;
+        overflow-x: auto;
+
+        min-height: 200px;
+        margin-bottom: -24px;
+      }
+      .cm-tab {
+        background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAMCAYAAAAkuj5RAAAAAXNSR0IArs4c6QAAAGFJREFUSMft1LsRQFAQheHPowAKoACx3IgEKtaEHujDjORSgWTH/ZOdnZOcM/sgk/kFFWY0qV8foQwS4MKBCS3qR6ixBJvElOobYAtivseIE120FaowJPN75GMu8j/LfMwNjh4HUpwg4LUAAAAASUVORK5CYII=);
+        background-position: right;
+        background-repeat: no-repeat;
+      }
+      .editor-container {
+        width: 100%;
+      }
+      .help-container {
+        height: 12px;
+        padding: 0;
+        margin-top: -8px;
+        font-size: 12px;
+        padding-bottom: 8px;
+        color: #666;
+      }
+      .title {
+        height: 32px;
+      }
+      .feedback-content {
+        min-height: 120px;
+      }
+      .feedback-pane {
+        padding-left: 12px;
+      }
+      .feedback-close {
+        margin-top: 12px;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title well well-small hide">
+      <div class="status compiling-status hide">
+        <span class="lead"><img src="{{compiling_spinner}}"> Compiling</span>
+        ...&nbsp; Your code is compiling. Results will appear here shortly.
+      </div>
+      <div class="status running-status hide">
+        <span class="lead"><img src="{{running_spinner}}"> Running</span>
+        ...&nbsp; Performing Dry-Run tests on the last compilation of your code.
+      </div>
+      <div class="status submitting-status hide">
+        <span class="lead"><img src="{{submitting_spinner}}"> Submitting</span>
+        ...&nbsp; Submitting your code to be tested further.
+      </div>
+      <div class="status marking-status hide">
+        <span class="lead"><img src="{{waiting_spinner}}"> Running Tests</span>
+        ...&nbsp; Your code is awaiting testing. Results will appear here shortly, or you may return here later.
+      </div>
+      <div class="status completed-status hide">
+        <span class="lead"><img src="{{tick_icon}}"> <span id="completed-title"></span></span>
+        &nbsp; &nbsp; <span id="completed-text"></span>
+      </div>
+      <div class="status error-status hide">
+        <span class="lead"><img src="{{cross_icon}}"> <span id="error-title"></span></span>
+        &nbsp; &nbsp; <span id="error-text"></span>
+      </div>
+    </div>
+
+    <div class="feedback hide">
+      <div class="pull-right"><button class="close feedback-close" id="hide-feedback"><i class="icon-chevron-up"></i></button></div>
+
+      <ul class="nav nav-tabs" id="feedback-tabs">
+        <li class="hide"><a href="#compilation" id="compilation-tab" data-toggle="tab">Compilation Errors</a></li>
+        <li class="hide"><a href="#dry-run-results" id="dry-run-tab" data-toggle="tab">Dry-Run Results</a></li>
+        <li class="hide"><a href="#testing-results" id="testing-tab" data-toggle="tab">Testing Results</a></li>
+      </ul>
+      
+      <div class="tab-content feedback-content">
+        <div class="tab-pane feedback-pane" id="compilation">
+          <h4>Output from the last compilation:</h4>
+          <pre id="compile-errors">TODO: Compile Errors</pre>
+        </div>
+        <div class="tab-pane feedback-pane" id="dry-run-results">
+          <h4>Result of the last dry-run:</h4>
+          TODO: dry-run results
+        </div>
+        <div class="tab-pane feedback-pane" id="testing-results">
+          <h4>Result of the last submission:</h4>
+          TODO: testing-results
+        </div>
+      </div>
+      <hr/>
+      <div class="clearfix"></div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span2">
+          <ul class="nav nav-list files-list">
+            <li class="nav-header">Source Files</li>
+            <li class="active"><a href="#">foo.c</a></li>
+            <li><a href="#">bar.c</a></li>
+          </ul>
+        </div>
+        <div class="span10">
+          <div class="btn-toolbar">
+            <div class="pull-right">
+              <div class="btn-group">
+                <button class="btn toolbar-button btn-success" title="Submit for further testing and grading" id="submit-btn">Submit and Run Tests &raquo;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-toolbar">
+            <div class="btn-group">
+              <button id="save-btn" class="btn toolbar-button" title="Save $filename"><i class="icon-download-alt"></i></button>
+            </div>
+            <div class="btn-group">
+              <button id="undo-btn" class="btn toolbar-button" title="Undo"><img src="{{undo_icon}}"></button>
+              <button id="redo-btn" class="btn toolbar-button" title="Redo"><img src="{{redo_icon}}"></i></button>
+            </div>
+            <div class="btn-group">
+              <button id="compile-btn" class="btn toolbar-button" title="Compile"><img id="compile-icon" src="{{compile_icon}}"></button>
+              <button id="run-btn" class="btn toolbar-button" title="Dry-Run" disabled><i class="icon-play"></i></button>
+            </div>
+          </div>
+
+          <div class="help-container" id="help-text"></div>
+
+          <div class="editor-container">
+            <textarea class="editor" id="fileEditor"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // TODO remove
+      var demoFiles = {};
+      demoFiles['foo.c'] = "This is Foo";
+      demoFiles['bar.c'] = "This is Bar";
+
+      var submissionFiles;
+      var loadDocument, doLoad;
+
+      var compiledImg, compileImg;
+      var editor, saveDocument, isSaved, doSubmit, currentFileName;
+      var compileComplete, runComplete, compileFailure, runFailure;
+      var toggleTabs;
+
+      compileImg = '{{compile_icon}}';
+      compiledImg = '{{compiled_icon}}';
+
+      // TODO populate from template
+      submissionFiles = [{
+        filename: 'foo.c'
+      },
+      {
+        filename: 'bar.c'
+      }];
+
+      currentFileName = submissionFiles[0].filename;
+
+      doLoad = function(filename) {
+        editor.setValue( demoFiles[filename] );
+        currentFileName = filename;
+        $('#help-text').empty().append('Opened ').append( $('<b>').text(currentFileName) );
+        isSaved = true;
+      };
+
+      loadDocument = function(filename, callback) {
+        if (!isSaved) {
+          bootbox.dialog(
+            'This document has not been saved. Would you like to save changes before opening another?',
+            [{
+              'label': 'Cancel'
+            },
+            {
+              'label': 'Discard changes',
+              'class': 'btn-primary',
+              'callback': function() {
+                doLoad(filename);
+                callback();
+              }
+            },
+            {
+              'label': 'Save before opening',
+              'class': 'btn-success',
+              'callback': function() {
+                saveDocument();
+                doLoad(filename);
+                callback();
+              }
+            }]
+          );
+        } else {
+          doLoad(filename);
+          callback();
+        }
+      };
+
+      toggleTabs = function() {
+        $('.feedback-content').slideToggle();
+        if ($('.feedback-content').data('hidden')) {
+          $(this).html('<i class="icon-chevron-up"></i>');
+          $('.feedback-content').data('hidden', false);
+        } else {
+          $('.feedback-content').data('hidden', true);
+          $(this).html('<i class="icon-chevron-down"></i>');
+        }
+      };
+
+      $('#feedback-tabs').find('a[data-toggle="tab"]').on('click', function(){
+        $('.feedback-content').slideDown();
+        $('#hide-feedback').html('<i class="icon-chevron-up"></i>');
+        $('.feedback-content').data('hidden', false);
+      });
+
+      $('#hide-feedback').click(toggleTabs);
+
+
+      compileComplete = function() {
+        $('#run-btn').prop('disabled', false);
+        $('#compile-btn').prop('disabled', false);
+        $('.status').hide();
+        $('#completed-title').text('Compiled Successfully');
+        $('#completed-text').text('Your code compiled successfully and can be tested.');
+        $('.completed-status').fadeIn();
+        $('#compile-icon').attr('src', compiledImg);
+
+        $('#compile-errors').text('Compiled successfully.');
+      };
+
+      compileFailure= function(result) {
+        $('#run-btn').prop('disabled', true);
+        $('#compile-btn').prop('disabled', false);
+        $('.status').hide();
+        $('#error-title').text('Compilation Errors');
+        $('#error-text').text('Your code did not compile. Errors are shown below.');
+        $('.error-status').fadeIn();
+        $('#compile-icon').attr('src', compileImg);
+
+        $('.feedback').slideDown();
+        $('#compilation-tab').parent('li').show();
+        $('#compilation-tab').tab('show');
+        $('#compile-errors').text(result.error);
+      };
+
+      runComplete = function() {
+        $('#run-btn').prop('disabled', false);
+        $('#compile-btn').prop('disabled', false);
+        $('.status').hide();
+        $('#completed-title').text('Dry-Run Successful');
+        $('#completed-text').text('Your code passed the dry-run test. You can submit your code for further testing.');
+        $('.completed-status').fadeIn();
+
+        $('.feedback').slideDown();
+        $('#dry-run-tab').parent('li').show();
+        $('#dry-run-tab').tab('show');
+      };
+
+      runFailure = function() {
+        $('#run-btn').prop('disabled', false);
+        $('#compile-btn').prop('disabled', false);
+        $('.status').hide();
+        $('#error-title').text('Dry-Run Error');
+        $('#error-text').text('Your code did not pass the dry-run tests. Details are shown below.');
+        $('.error-status').fadeIn();
+
+        $('.feedback').slideDown();
+        $('#dry-run-tab').parent('li').show();
+        $('#dry-run-tab').tab('show');
+      };
+
+      saveDocument = function() {
+        // TODO async=false save
+        isSaved = true;
+        demoFiles[currentFileName] = editor.getValue();
+      };
+
+      doResults = function(result) {
+        $('.title').show();
+        $('.status').hide();
+
+        if (result.completed) {
+          $('#completed-title').text('Submission Passed');
+          $('#completed-text').text('Well done! Your code passed the submission tests. You have completed this activity.');
+          $('.completed-status').fadeIn();
+        } else {
+          $('#error-title').text('Submission did not pass tests');
+          $('#error-text').text('Your code did not pass the submission tests. Details are shown below.');
+          $('.error-status').fadeIn();
+        }
+
+        $('.feedback').slideDown();
+        $('#testing-tab').parent('li').show();
+        $('#testing-tab').tab('show');
+      };
+
+      doMarking = function() {
+        $('.title').show();
+        $('.status').hide();
+        $('.marking-status').fadeIn();
+
+        setTimeout( function() {
+          doResults({ completed: Math.random() > 0.5 });
+        }, 2000 );
+      };
+
+      doSubmit = function() {
+        $('.title').show();
+        $('.status').hide();
+        $('.submitting-status').fadeIn();
+
+        // TODO: submitting
+        setTimeout( doMarking, 2000 );
+      };
+
+      editor = CodeMirror.fromTextArea($("#fileEditor")[0], {
+        lineNumbers: true,
+        mode: "text/x-csrc",
+        indentUnit: 3,
+        lineWrapping: true,
+        tabSize: 3,
+        smartIndent: true,
+        indentWithTabs: false,
+        extraKeys: {
+          "Tab": function(instance) {
+            var spaces;
+            if (instance.somethingSelected()) {
+              CodeMirror.commands.indentMore(instance);
+            } else {
+              if (instance.options.indentWithTabs) {
+                CodeMirror.commands.insertTab(instance);
+              } else {
+                spaces = Array(instance.options.tabSize+1).join(" ");
+                instance.replaceSelection(spaces, "end", "+input") 
+              }
+            }
+          },
+          "Cmd-S": saveDocument,
+          "Ctrl-S": saveDocument
+        }
+      });
+
+      editor.on("change", function() {
+          isSaved = false;
+          $('#compile-icon').attr('src', compileImg);
+          //window.app.resize();
+      });
+
+      var hlLine = editor.addLineClass(0, "background", "activeline");
+      editor.on("cursorActivity", function() {
+        var cur = editor.getLineHandle(editor.getCursor().line);
+        if (cur != hlLine) {
+          editor.removeLineClass(hlLine, "background", "activeline");
+          hlLine = editor.addLineClass(cur, "background", "activeline");
+        }
+      });
+
+      $(document).ready(function() {
+        $('.toolbar-button').mouseover(function(){
+          $('#help-text').text($(this).attr('title').replace('$filename', currentFileName));
+        }).mouseout(function(){
+          $('#help-text').empty().append('Editing ').append( $('<b>').text(currentFileName) );
+        });
+
+        $('.toolbar-button').mouseout();
+
+        $('#save-btn').click(function(){
+          saveDocument();
+        });
+
+        $('#compile-btn').click(function(){
+          $(this).prop('disabled', true);
+          $('#run-btn').prop('disabled', true);
+          $('.status').hide();
+          $('.title').show();
+          $('.compiling-status').fadeIn();
+          // TODO Compile
+          if (Math.random() < 0.5) {
+            setTimeout( compileComplete, 2000 );
+          } else {
+            setTimeout( function() {
+              compileFailure({ error: 'Line 42 broke.'});
+            }, 2000 );
+          }
+        });
+
+        $('#run-btn').click(function(){
+          $(this).prop('disabled', true);
+          $('#compile-btn').prop('disabled', true);
+          $('.status').hide();
+          $('.title').show();
+          $('.running-status').fadeIn();
+          // TODO Run
+          if (Math.random() < 0.5) {
+            setTimeout( runComplete, 2000 );
+          } else {
+            setTimeout( function() {
+              runFailure({ error: 'Didn\'t pass tests, damn'});
+            }, 2000 );
+          }
+        })
+
+        $('#undo-btn').click(function(){
+          editor.undo();
+        });
+
+        $('#redo-btn').click(function(){
+          editor.redo();
+        });
+
+        $('#submit-btn').click(function() {
+          if (!isSaved) {
+            bootbox.dialog(
+              'This document has not been saved. Would you like to save changes before submitting?',
+              [{
+                'label': 'Cancel'
+              },
+              {
+                'label': 'Submit Without Saving',
+                'class': 'btn-primary',
+                'callback': function() {
+                  doSubmit();
+                }
+              },
+              {
+                'label': 'Save and Submit',
+                'class': 'btn-success',
+                'callback': function() {
+                  saveDocument();
+                  doSubmit();
+                }
+              }]
+            );
+          } else {
+            doSubmit();
+          }
+        });
+
+        $('.files-list').on('click', 'li', function() {
+          var $item = $(this);
+          loadDocument($(this).text(), function() {
+            $('.files-list li.active').removeClass('active');
+            $item.addClass('active');
+          });
+        });
+
+        // TODO: see if compiled
+        $('#run-btn').prop('disabled', true);
+
+        isSaved = true;
+        loadDocument(currentFileName, function() {});
+
+        window.onbeforeunload = function() {
+          if (!isSaved) {
+            return 'This document has not been saved.';
+          }
+        };
+      });
+    </script>
+  </body>
+</html>

@@ -1,7 +1,8 @@
 include('mustache.js');
 include('helpers.js');
+include('escape.js');
 
-var i, steps, renderStep, accessDenied, view, setDefault, escapeHTML, escapeObjectHTML;
+var i, steps, renderStep, accessDenied, view, setDefault;
 
 // steps which can be rendered
 steps = {
@@ -75,33 +76,6 @@ view.head += '<script type="text/javascript" src="/common/select2/select2.min.js
 
 view.head += '</head>\n';
 
-escapeHTML = function(string) {
-  var escapeMap = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': '&quot;',
-      "'": '&#39;'
-    };
-
-  return String(string).replace(/&(?!\w+;)|[<>"']/g, function (s) {
-      return escapeMap[s] || s;
-  });
-};
-
-escapeObjectHTML = function(obj) {
-  var key;
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      if (typeof obj[key] === 'string') {
-        obj[key] = escapeHTML(obj[key]);
-      } else if (typeof obj[key] === 'object') {
-        obj[key] = escapeObjectHTML(obj[key]);
-      }
-    }
-  }
-  return obj;
-};
 
 setDefaults = function(obj, defaultValues) {
   var key;
