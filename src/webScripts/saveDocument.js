@@ -1,0 +1,1 @@
+response.writeText('success');

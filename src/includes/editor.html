@@ -116,6 +116,7 @@
       <div class="row-fluid">
         <div class="span2">
           <ul class="nav nav-list files-list">
+            <li><small>Loading...</small></li>
           </ul>
           <br/>
           <hr/>
@@ -154,12 +155,9 @@
     </div>
 
     <script>
-      // TODO remove
-      var demoFiles = {};
-      demoFiles['foo.c'] = "This is Foo";
-      demoFiles['bar.c'] = "This is Bar";
+      // TODO: new document, save document
 
-      var submissionFiles;
+      var submissionFiles, submissionURL;
       var loadDocument, doLoad, populateFileList;
 
       var compiledImg, compileImg;
@@ -170,9 +168,30 @@
       compileImg = '{{compile_icon}}';
       compiledImg = '{{compiled_icon}}';
       
-      submissionFiles = {{&filesJSON}};
+      submissionFiles = [];
+      submissionURL = null;
+      currentFileName = null;
 
-      currentFileName = submissionFiles[0].filename;
+      loadFileList = function() {
+        $.ajax( {
+            type: "GET",
+            dataType: "json",
+            url: './loadDocumentList',
+            async: false,
+            success: function(result) {
+              submissionFiles = result.files;
+              if (currentFileName == null && submissionFiles.length > 0) {
+                currentFileName = submissionFiles[0].filename;
+              } 
+
+              submissionURL = result.submissionURL;
+              populateFileList(submissionFiles);
+            },
+            error: function() {
+              alert('Unable to load file listing');
+            }
+        });
+      };
 
       populateFileList = function(files) {
         var i;
@@ -185,10 +204,25 @@
       };
 
       doLoad = function(filename) {
-        editor.setValue( demoFiles[filename] );
-        currentFileName = filename;
-        $('#help-text').empty().append('Opened ').append( $('<b>').text(currentFileName) );
-        isSaved = true;
+        $.ajax( {
+            type: "POST",
+            data: {
+              filename: filename
+            },
+            dataType: "json",
+            url: './loadDocument',
+            async: false,
+            success: function(result) {
+              editor.setValue(result.data);
+              //editor.enable();
+              currentFileName = result.filename;
+              $('#help-text').empty().append('Opened ').append( $('<b>').text(currentFileName) );
+              isSaved = true;
+            },
+            error: function() {
+              alert('Unable to load ' + filename);
+            }
+        });
       };
 
       loadDocument = function(filename, callback) {
@@ -297,9 +331,22 @@
       };
 
       saveDocument = function() {
-        // TODO async=false save
-        isSaved = true;
-        demoFiles[currentFileName] = editor.getValue();
+        $.ajax( {
+            type: "POST",
+            data: {
+              filename: filename,
+              data: editor.getValue()
+            },
+            dataType: "json",
+            url: './saveDocument',
+            async: false,
+            success: function(result) {
+              isSaved = true;
+            },
+            error: function() {
+              alert('Unable to load ' + filename);
+            }
+        });
       };
 
       doResults = function(result) {
@@ -384,9 +431,15 @@
 
       $(document).ready(function() {
         $('.toolbar-button').mouseover(function(){
-          $('#help-text').text($(this).attr('title').replace('$filename', currentFileName));
+          if (currentFileName != null) {
+            $('#help-text').text($(this).attr('title').replace('$filename', currentFileName));
+          }
         }).mouseout(function(){
-          $('#help-text').empty().append('Editing ').append( $('<b>').text(currentFileName) );
+          if (currentFileName != null) {
+            $('#help-text').empty().append('Editing ').append( $('<b>').text(currentFileName) );
+          } else {
+            $('#help-text').empty();
+          }
         });
 
         $('.toolbar-button').mouseout();
@@ -475,14 +528,20 @@
         $('#run-btn').prop('disabled', true);
 
         isSaved = true;
-        populateFileList(submissionFiles);
-        loadDocument(currentFileName, function() {});
+        loadFileList();
+
+        if (currentFileName == null) {
+          //editor.disable();
+        } else {
+          loadDocument(currentFileName, function() {});
+        }
 
         $('#upload').click(function() {
-          var uploadDialog = window.open('{{ submissionURL }}?action=attachDialog','dialog', 'width=480,height=240,directories=0,titlebar=0,toolbar=0,location=0,status=0,menubar=0,scrollbars=no,resizable=no');
+          if (submissionURL != null) {
+            var uploadDialog = window.open(submissionURL + '?action=attachDialog','dialog', 'width=480,height=240,directories=0,titlebar=0,toolbar=0,location=0,status=0,menubar=0,scrollbars=no,resizable=no');
+          }
+          return false;
         });
-
-
 
         window.onbeforeunload = function() {
           if (!isSaved) {
@@ -491,13 +550,11 @@
         };
 
         window.app.onMessage('close', function() {
-          // TODO: load submission files
-          populateFileList(submissionFiles);
+          loadFileList();
           $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
         });
 
         window.app.resize();
-
         $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
       });
     </script>

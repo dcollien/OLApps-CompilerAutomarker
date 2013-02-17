@@ -47,31 +47,6 @@ view.head += '<script type="text/javascript" src="/common/select2/select2.min.js
 
 
 renderEditor = function() {
-  var page, pageData, submissionPage, submission, files, i;
-  // download page data
-  page = OpenLearning.page.getData(request.user);
-  pageData = page.data;
-
-  submissionPage = OpenLearning.activity.getSubmission(request.user, []); // no file reads
-  submission = submissionPage.submission;
-
-  files = submission.files;
-
-  view.submissionURL = submissionPage.url;
-
-  view.files = [];
-
-  if (submission.files) {
-    for (i = 0; i != files.length; ++i) {
-      view.files.push({
-        filename: files[i].filename,
-        size: files[i].size
-      });
-    }
-  }
-
-  view.filesJSON = JSON.stringify(escapeObjectHTML(view.files));
-  
   render(include('editor.html'), view);
 };
 
