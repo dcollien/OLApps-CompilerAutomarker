@@ -13,6 +13,15 @@
         top: 300px;
       }
 
+      .files-list {
+        overflow: hidden;
+      }
+
+      .files-list li a {
+        padding-left: 4px;
+        font-size: 12px;
+      }
+
       .activeline {
         background: #e8f2ff !important;
       }
@@ -170,6 +179,9 @@
       </div>
     </div>
 
+    <br/>
+    <a href="#" id="submission-link" class="hide" target="_blank">Go to submission page &raquo;</a>
+
     <script>
       var submissionFiles, submissionURL;
       var loadDocument, doLoad, populateFileList;
@@ -204,6 +216,8 @@
 
               submissionURL = result.submissionURL;
               populateFileList(submissionFiles);
+              $('#submission-link').attr('href', submissionURL).show();
+
             },
             error: function() {
               alert('Unable to load file listing');
@@ -219,6 +233,11 @@
         for (i = 0; i != files.length; ++i) {
           $list.append($('<li>').append($('<a href="#">').text(files[i].filename)));
         }
+
+        if (currentFileName) {
+          $('.files-list li.active').removeClass('active');
+          $('.files-list li:contains("' + currentFileName + '")').addClass('active');
+        }
       };
 
       doLoad = function(filename) {
@@ -231,8 +250,17 @@
             url: './loadDocument',
             async: false,
             success: function(result) {
+              if (console) {
+                console.log(result);
+              }
+
+              if (result.data == null) {
+                alert('No data');
+                return;
+              }
+
               editor.setValue(result.data);
-              //editor.enable();
+
               currentFileName = result.filename;
               $('#help-text').empty().append('Opened ').append( $('<b>').text(currentFileName) );
               isSaved = true;
@@ -307,7 +335,9 @@
         $('.status').hide();
         $('#completed-title').text('Compiled Successfully');
         $('#completed-text').text('Your code compiled successfully and can be tested.');
-        $('.completed-status').fadeIn();
+        $('.completed-status').fadeIn(function() {
+          window.app.resize();
+        });
         $('#compile-icon').attr('src', compiledImg);
 
         $('#compile-errors').text('Compiled successfully.');
@@ -322,7 +352,9 @@
         $('.error-status').fadeIn();
         $('#compile-icon').attr('src', compileImg);
 
-        $('.feedback').slideDown();
+        $('.feedback').slideDown(function() {
+          window.app.resize();
+        });
         $('#compilation-tab').parent('li').show();
         $('#compilation-tab').tab('show');
         $('#compile-errors').text(result.error);
@@ -336,7 +368,9 @@
         $('#completed-text').text('Your code passed the dry-run test. You can submit your code for further testing.');
         $('.completed-status').fadeIn();
 
-        $('.feedback').slideDown();
+        $('.feedback').slideDown(function() {
+          window.app.resize();
+        });
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
       };
@@ -349,15 +383,21 @@
         $('#error-text').text('Your code did not pass the dry-run tests. Details are shown below.');
         $('.error-status').fadeIn();
 
-        $('.feedback').slideDown();
+        $('.feedback').slideDown(function() {
+          window.app.resize();
+        });
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
         $('#dry-run-results').text(result.error);
       };
 
-      saveDocument = function(filename, callback) {
+      saveDocument = function(filename, callback, isNew) {
         if (filename == null) {
           filename = currentFileName;
+        }
+
+        if ((typeof isNew) === 'undefined' || isNew === null) {
+          isNew = false;
         }
 
         if (filename) {
@@ -365,7 +405,8 @@
               type: "POST",
               data: {
                 filename: filename,
-                data: editor.getValue()
+                data: editor.getValue(),
+                isNew: isNew
               },
               url: './saveDocument',
               async: false,
@@ -379,7 +420,7 @@
                 if (console) {
                   console.log(result);
                 }
-                alert('Unable to save ' + filename);
+                alert('Unable to save ' + filename + '<br/>' + result.responseText);
               }
           });
         } else {
@@ -394,16 +435,23 @@
         if (result.completed) {
           $('#completed-title').text('Submission Passed');
           $('#completed-text').text('Well done! Your code passed the submission tests. You have completed this activity.');
-          $('.completed-status').fadeIn();
+          $('.completed-status').fadeIn(function() {
+            window.app.resize();
+          });
         } else {
           $('#error-title').text('Submission did not pass tests');
           $('#error-text').text('Your code did not pass the submission tests. Details are shown below.');
-          $('.error-status').fadeIn();
+          $('.error-status').fadeIn(function() {
+            window.app.resize();
+          });
         }
 
-        $('.feedback').slideDown();
+        $('.feedback').slideDown(function() {
+          window.app.resize();
+        });
         $('#testing-tab').parent('li').show();
         $('#testing-tab').tab('show');
+        window.app.resize();
       };
 
       doMarking = function() {
@@ -594,7 +642,7 @@
                 loadFileList();
                 editor.setOption('readOnly', false);
                 $('.CodeMirror').removeClass('disabled');
-              });
+              }, true); // isNew
             }
           });
         };
