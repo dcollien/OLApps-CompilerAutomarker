@@ -7,6 +7,12 @@
       .modal-backdrop {
         background-color: white !important;
       }
+
+      .bootbox-pos {
+        position: absolute;
+        top: 300px;
+      }
+
       .activeline {
         background: #e8f2ff !important;
       }
@@ -15,6 +21,10 @@
         height: auto;
         width: 100%;
       }
+      .CodeMirror.disabled {
+        background-color: #eee;
+      }
+
       .CodeMirror-gutters {
         border: none;
       }
@@ -54,6 +64,11 @@
         margin-top: 12px;
         margin-right: 8px;
       }
+
+      .bar-btn {
+        width: 104px;
+        margin-top: 4px;
+      }
     </style>
   </head>
   <body>
@@ -72,7 +87,7 @@
       </div>
       <div class="status marking-status hide">
         <span class="lead"><img src="{{waiting_spinner}}"> Running Tests</span>
-        ...&nbsp; Your code is awaiting testing. Results will appear here shortly, or you may return here later.
+        ...&nbsp; Your code is awaiting testing. Results will appear here shortly, or you may return to this page later.
       </div>
       <div class="status completed-status hide">
         <span class="lead"><img src="{{tick_icon}}"> <span id="completed-title"></span></span>
@@ -120,7 +135,8 @@
           </ul>
           <br/>
           <hr/>
-          <button class="btn btn-mini" id="upload"><i class="icon-upload"></i> Upload</button>
+          <button class="btn btn-mini bar-btn" id="upload"><i class="icon-upload"></i> Upload</button>
+          <button class="btn btn-mini bar-btn" id="new"><i class="icon-file"></i> New</button>
         </div>
         <div class="span10">
           <div class="btn-toolbar">
@@ -155,15 +171,17 @@
     </div>
 
     <script>
-      // TODO: new document, save document
-
       var submissionFiles, submissionURL;
       var loadDocument, doLoad, populateFileList;
+      var confirmUnsaved, doNew;
 
       var compiledImg, compileImg;
       var editor, saveDocument, isSaved, doSubmit, currentFileName;
       var compileComplete, runComplete, compileFailure, runFailure;
       var toggleTabs;
+
+      bootbox.animate(false);
+      bootbox.classes('bootbox-pos');
 
       compileImg = '{{compile_icon}}';
       compiledImg = '{{compiled_icon}}';
@@ -218,6 +236,9 @@
               currentFileName = result.filename;
               $('#help-text').empty().append('Opened ').append( $('<b>').text(currentFileName) );
               isSaved = true;
+              
+              editor.setOption('readOnly', false);
+              $('.CodeMirror').removeClass('disabled');
             },
             error: function() {
               alert('Unable to load ' + filename);
@@ -225,31 +246,35 @@
         });
       };
 
+      confirmUnsaved = function(callback) {
+        bootbox.dialog(
+          'This document has not been saved. Would you like to save changes before opening another?',
+          [{
+            'label': 'Cancel'
+          },
+          {
+            'label': 'Discard changes',
+            'class': 'btn-primary',
+            'callback': callback
+          },
+          {
+            'label': 'Save before opening',
+            'class': 'btn-success',
+            'callback': function() {
+              saveDocument(currentFileName, function() {
+                callback();
+              });
+            }
+          }]
+        );
+      };
+
       loadDocument = function(filename, callback) {
         if (!isSaved) {
-          bootbox.dialog(
-            'This document has not been saved. Would you like to save changes before opening another?',
-            [{
-              'label': 'Cancel'
-            },
-            {
-              'label': 'Discard changes',
-              'class': 'btn-primary',
-              'callback': function() {
-                doLoad(filename);
-                callback();
-              }
-            },
-            {
-              'label': 'Save before opening',
-              'class': 'btn-success',
-              'callback': function() {
-                saveDocument();
-                doLoad(filename);
-                callback();
-              }
-            }]
-          );
+          confirmUnsaved(function() {
+            doLoad(filename);
+            callback();
+          });
         } else {
           doLoad(filename);
           callback();
@@ -330,23 +355,36 @@
         $('#dry-run-results').text(result.error);
       };
 
-      saveDocument = function() {
-        $.ajax( {
-            type: "POST",
-            data: {
-              filename: filename,
-              data: editor.getValue()
-            },
-            dataType: "json",
-            url: './saveDocument',
-            async: false,
-            success: function(result) {
-              isSaved = true;
-            },
-            error: function() {
-              alert('Unable to load ' + filename);
-            }
-        });
+      saveDocument = function(filename, callback) {
+        if (filename == null) {
+          filename = currentFileName;
+        }
+
+        if (filename) {
+          $.ajax( {
+              type: "POST",
+              data: {
+                filename: filename,
+                data: editor.getValue()
+              },
+              url: './saveDocument',
+              async: false,
+              success: function(result) {
+                isSaved = true;
+                if (callback) {
+                  callback(filename);
+                }
+              },
+              error: function(result) {
+                if (console) {
+                  console.log(result);
+                }
+                alert('Unable to save ' + filename);
+              }
+          });
+        } else {
+          alert('No document to save.');
+        }
       };
 
       doResults = function(result) {
@@ -433,6 +471,8 @@
         $('.toolbar-button').mouseover(function(){
           if (currentFileName != null) {
             $('#help-text').text($(this).attr('title').replace('$filename', currentFileName));
+          } else {
+            $('#help-text').text($(this).attr('title').replace('$filename', '(No File Open)'));
           }
         }).mouseout(function(){
           if (currentFileName != null) {
@@ -531,7 +571,9 @@
         loadFileList();
 
         if (currentFileName == null) {
-          //editor.disable();
+          editor.setOption('readOnly', true);
+          $('.CodeMirror').addClass('disabled');
+
         } else {
           loadDocument(currentFileName, function() {});
         }
@@ -541,6 +583,30 @@
             var uploadDialog = window.open(submissionURL + '?action=attachDialog','dialog', 'width=480,height=240,directories=0,titlebar=0,toolbar=0,location=0,status=0,menubar=0,scrollbars=no,resizable=no');
           }
           return false;
+        });
+
+        var doNew = function() {
+          editor.setValue('');
+          bootbox.prompt("File name", function(result) {                
+            if (result != null && result != '') {                                             
+              saveDocument(result, function() {
+                currentFileName = result;
+                loadFileList();
+                editor.setOption('readOnly', false);
+                $('.CodeMirror').removeClass('disabled');
+              });
+            }
+          });
+        };
+
+        $('#new').click(function() {
+          if (!isSaved) {
+            confirmUnsaved(function() {
+              doNew();
+            });
+          } else {
+            doNew();
+          }
         });
 
         window.onbeforeunload = function() {

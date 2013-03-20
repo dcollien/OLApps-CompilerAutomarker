@@ -40,7 +40,7 @@
             <!-- get value from server -->
             <input type="text" class="fileEntry" name="optionalFileNames" id="optionalFileNames" placeholder="Optional File Names" value="{{optionalFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that may be submitted but are not required for the submission to be accepted."></i></span>
-            <span class="help-block"><code>*</code> may be used as a wildcard
+            <span class="help-block"><code>*</code> may be used as a wildcard</span>
           </div>
         </div>
 
@@ -50,7 +50,7 @@
             <!-- get value from server -->
             <input type="text" class="fileEntry" name="precludedFileNames" id="precludedFileNames" placeholder="Precluded File Names" value="{{precludedFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that are not permitted. If a file is submitted with a name matching one from this list (and it is not in the required and optional files lists) then the submission will be rejected."></i></span>
-            <span class="help-block"><code>*</code> may be used as a wildcard
+            <span class="help-block"><code>*</code> may be used as a wildcard</span>
           </div>
         </div>
 
@@ -237,16 +237,20 @@
       var buildPreprocessingStep = function(step) {
         var $filesCell, $actionCell, $fileList, $row;
         
-        $row = $('<tr class="processingStepEntry">');
+        $row = $('<tr class="processingStepEntry"></tr>');
         $row.append( $('<td>').text(step.name) );
 
-        $fileList = $('<ul class="unstyled file-list">');
+        $fileList = $('<ul class="unstyled file-list"></ul>');
+
+        if (typeof step.files === 'string') {
+          step.files = (step.files).split(',');
+        }
 
         $(step.files).each(function(index, item) {
           $fileList.append( $('<li>').text(item) );
         });
 
-        $filesCell = $('<td class="filesColumn">').append( $fileList );
+        $filesCell = $('<td class="filesColumn"></td>').append( $fileList );
 
         if (!multiFile) {
           $filesCell.hide();
