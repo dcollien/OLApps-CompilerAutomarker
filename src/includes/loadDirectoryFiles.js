@@ -1,4 +1,4 @@
-var loadDirectoryFiles = function(pageData, loadContents) {
+var loadDirectoryFiles = function(settings, pageData, loadContents) {
   var i, j, fileSystemFilesPage, compilationFilesPage, notFound, remainingFileList, fileData, consolidateFiles;
 
   if (!pageData.compilationFiles) {
@@ -10,13 +10,13 @@ var loadDirectoryFiles = function(pageData, loadContents) {
   }
 
   try {
-    compilationFilesPage = OpenLearning.page.readSubpage('MarkingCode');
+    compilationFilesPage = OpenLearning.page.readSubpage(settings.codeSubPath);
   } catch (err) {
     compilationFilesPage = null;
   }
 
   try {
-    fileSystemFilesPage = OpenLearning.page.readSubpage('FileSystem');
+    fileSystemFilesPage = OpenLearning.page.readSubpage(settings.fileSubPath);
   } catch (err) {
     fileSystemFilesPage = null;
   }

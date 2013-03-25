@@ -1,8 +1,10 @@
 include('mustache.js');
 include('helpers.js');
 include('escape.js');
+include('settings.js');
 
 var i, steps, renderStep, accessDenied, view, setDefault;
+var settings = getSettings();
 
 // steps which can be rendered
 steps = {
@@ -106,7 +108,7 @@ renderStep = function() {
   setDefaults(pageData, {
     multiFile: false,
     sharedFile: '',
-    singleFileName: 'solution.c',
+    singleFileName: settings.defaultSingleFile,
     isEmbed: true,
     isUpload: false,
     isPublic: true,
@@ -163,8 +165,8 @@ renderStep = function() {
   }
 
   view.spinner = mediaURL('loader.gif');
-  view.addSourceURL = page.url + '/MarkingCode';
-  view.addFileSystemURL = page.url + '/FileSystem';
+  view.addSourceURL = page.url + '/' + settings.codeSubPath;
+  view.addFileSystemURL = page.url + '/' + settings.filesSubPath;
 
   render(template, view);
 };
