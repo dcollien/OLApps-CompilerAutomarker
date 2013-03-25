@@ -183,12 +183,15 @@
     <a href="#" id="submission-link" class="hide" target="_blank">Go to submission page &raquo;</a>
 
     <script>
+      var compiledTests, fsFiles;
+
       var submissionFiles, submissionURL;
       var loadDocument, doLoad, populateFileList;
       var confirmUnsaved, doNew;
 
       var compiledImg, compileImg;
-      var editor, saveDocument, isSaved, doSubmit, currentFileName;
+      var editor, saveDocument, isSaved, doSubmit, doRun;
+      var currentFileName;
       var compileComplete, runComplete, compileFailure, runFailure;
       var toggleTabs;
 
@@ -348,7 +351,7 @@
         $('#compile-btn').prop('disabled', false);
         $('.status').hide();
         $('#error-title').text('Compilation Errors');
-        $('#error-text').text('Your code did not compile. Errors are shown below.');
+        $('#error-text').text('Your code was not compiled. Errors are shown below.');
         $('.error-status').fadeIn();
         $('#compile-icon').attr('src', compileImg);
 
@@ -473,6 +476,17 @@
         setTimeout( doMarking, 2000 );
       };
 
+      doRun = function() {
+        // TODO Run
+        if (Math.random() < 0.5) {
+          setTimeout( runComplete, 2000 );
+        } else {
+          setTimeout( function() {
+            runFailure({ error: "Didn't pass tests, damn"});
+          }, 2000 );
+        }
+      };
+
       editor = CodeMirror.fromTextArea($("#fileEditor")[0], {
         lineNumbers: true,
         mode: "text/x-csrc",
@@ -542,14 +556,28 @@
           $('.status').hide();
           $('.title').show();
           $('.compiling-status').fadeIn();
-          // TODO Compile
-          if (Math.random() < 0.5) {
-            setTimeout( compileComplete, 2000 );
-          } else {
-            setTimeout( function() {
-              compileFailure({ error: 'Line 42 broke.'});
-            }, 2000 );
-          }
+          
+          $.ajax( {
+            type: "GET",
+            dataType: "json",
+            url: './compileDryRun',
+            async: false,
+            success: function(result) {
+              if (result.success) {
+                compileComplete();
+
+                compiledTests = result.tests;
+                fsFiles = result.fileSystemFiles;
+              } else {
+                compiledTests = null;
+                fsFiles = null;
+                compileFailure(result);
+              }
+            },
+            error: function() {
+              alert('Unable to load ' + filename);
+            }
+          });
         });
 
         $('#run-btn').click(function(){
@@ -558,14 +586,8 @@
           $('.status').hide();
           $('.title').show();
           $('.running-status').fadeIn();
-          // TODO Run
-          if (Math.random() < 0.5) {
-            setTimeout( runComplete, 2000 );
-          } else {
-            setTimeout( function() {
-              runFailure({ error: "Didn't pass tests, damn"});
-            }, 2000 );
-          }
+
+          doRun();
         })
 
         $('#undo-btn').click(function(){

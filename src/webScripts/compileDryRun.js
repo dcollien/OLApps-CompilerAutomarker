@@ -71,7 +71,7 @@ if (missingFile !== null) {
             for (i = 0; i != tests.length; ++i) {
                 tests[i].compiledCode = compiledCode[tests[i].program];
             }
-
+            
             // report that everything went well,
             // attach the tests with the compiled code to run
             // and the file system filenames that need to be added at run-time
