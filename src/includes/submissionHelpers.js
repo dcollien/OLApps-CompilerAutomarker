@@ -144,7 +144,7 @@ replaceAllFiles = function(search, replace, files, nameMatch) {
 
     for (i = 0; i != files.length; ++i) {
         if (filenameMatch(files[i].filename, nameMatch)) {
-            files[i] = files[i].data.replace(search, replace);
+            files[i].data = files[i].data.replace(search, replace);
         }
     }
 
@@ -157,6 +157,11 @@ processFiles = function(filesWithData, preprocessingStep, matchString) {
         action: preprocessingStep.action,
         success: false
     };
+
+    if (matchString == null) {
+        result.message = 'Match String Undefined';
+        return result;
+    }
 
     re = new RegExp(preprocessingStep.search);
     if (preprocessingStep.action === "replace") {
@@ -182,7 +187,7 @@ doPreprocessing = function(preprocessingSteps, filesWithData) {
     for (i = 0; i != preprocessingSteps.length; ++i) {
         fileMatches = preprocessingSteps[i].files.split(',');
         for (fileIndex = 0; fileIndex != fileMatches.length; ++fileIndex) {
-            matchString = fileMatches[matchString];
+            matchString = fileMatches[fileIndex];
             result = processFiles(filesWithData, preprocessingSteps[i], matchString);
 
             if (!result.success) {
@@ -223,8 +228,7 @@ loadFiles = function(settings, pageData, files) {
     }
 
     // go through automarking supplied files
-    for (i = 0; i != pageData.compilationFiles; ++i) {
-        file = pageData.compilationFiles[i];
+    for (i = 0; i != pageData.compilationFiles.length; ++i) {
         if (filenames[file.filename] === file.filename) {
             // a file has already been submitted with this name
             if (file.overwrite && (file.overwrite+'') === 'true') {
@@ -262,6 +266,13 @@ doCompilation = function(settings, compilationSteps, filesWithData) {
 
         filesToSend = [];
         for (fileIndex = 0; fileIndex != files.length; ++fileIndex) {
+            if (!fileLookup[files[fileIndex]]) {
+                return {
+                    success: false,
+                    step: step,
+                    error: JSON.stringify(filesWithData) + '\n' + JSON.stringify(files) + '\n' + files[fileIndex]
+                };
+            }
             filesToSend.push(fileLookup[files[fileIndex]]);
         }
 

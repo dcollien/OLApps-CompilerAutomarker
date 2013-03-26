@@ -42,6 +42,7 @@ if (missingFile !== null) {
     submission = submissionPage.submission;
     files = submission.files;
 
+
     // preprocess the files
     preprocessingResult = doPreprocessing(pageData.preprocessingSteps, files);
 
@@ -58,8 +59,8 @@ if (missingFile !== null) {
         files = loadFiles(settings, pageData, files)
 
         // go through all the compilation steps
-        compilationResponse = doCompilation(steps.compilationSteps, files);
-        
+        compilationResponse = doCompilation(settings, steps.compilationSteps, files);
+
         if (!compilationResponse.success) {
             // report any compilation problems
             responseObject = compilationResponse;
@@ -67,11 +68,11 @@ if (missingFile !== null) {
             // add the compiled code to each of the dry-run tests
 
             tests = steps.tests;
-
-            for (i = 0; i != tests.length; ++i) {
-                tests[i].compiledCode = compiledCode[tests[i].program];
-            }
             
+            for (i = 0; i != tests.length; ++i) {
+                tests[i].compiledCode = compilationResponse.compiledCode[tests[i].program];
+            }
+
             // report that everything went well,
             // attach the tests with the compiled code to run
             // and the file system filenames that need to be added at run-time

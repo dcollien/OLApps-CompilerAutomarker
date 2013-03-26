@@ -182,8 +182,9 @@
     <br/>
     <a href="#" id="submission-link" class="hide" target="_blank">Go to submission page &raquo;</a>
 
+    <script src="./testing.js"></script>
     <script>
-      var compiledTests, fsFiles;
+      var compiledTests, fsFiles, fileSystem;
 
       var submissionFiles, submissionURL;
       var loadDocument, doLoad, populateFileList;
@@ -194,6 +195,8 @@
       var currentFileName;
       var compileComplete, runComplete, compileFailure, runFailure;
       var toggleTabs;
+
+      fileSystem = null;
 
       bootbox.animate(false);
       bootbox.classes('bootbox-pos');
@@ -363,7 +366,7 @@
         $('#compile-errors').text(result.error);
       };
 
-      runComplete = function() {
+      runComplete = function(output) {
         $('#run-btn').prop('disabled', false);
         $('#compile-btn').prop('disabled', false);
         $('.status').hide();
@@ -376,6 +379,8 @@
         });
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
+
+        $('#dry-run-results').text(output);
       };
 
       runFailure = function(result) {
@@ -477,13 +482,31 @@
       };
 
       doRun = function() {
-        // TODO Run
-        if (Math.random() < 0.5) {
-          setTimeout( runComplete, 2000 );
+
+        if (fileSystem == null) {
+          $.ajax( {
+            type: "POST",
+            data: {
+              suppliedFiles: fsFiles
+            },
+            dataType: "json",
+            url: './loadFilesystem',
+            async: false,
+            success: function(result) {
+              fileSystem = result;
+            },
+            error: function() {
+              alert('Unable to load file system');
+            }
+          });
+        }
+
+        var results = runTests(compiledTests, fileSystem);
+
+        if (results.success) {
+          runComplete(JSON.stringify(results, null, 2));
         } else {
-          setTimeout( function() {
-            runFailure({ error: "Didn't pass tests, damn"});
-          }, 2000 );
+          runFailure({error: JSON.stringify(results, null, 2)});
         }
       };
 
@@ -561,7 +584,6 @@
             type: "GET",
             dataType: "json",
             url: './compileDryRun',
-            async: false,
             success: function(result) {
               if (result.success) {
                 compileComplete();
@@ -585,9 +607,9 @@
           $('#compile-btn').prop('disabled', true);
           $('.status').hide();
           $('.title').show();
-          $('.running-status').fadeIn();
-
-          doRun();
+          $('.running-status').fadeIn(function() {
+            doRun();
+          });
         })
 
         $('#undo-btn').click(function(){
