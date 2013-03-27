@@ -1,4 +1,18 @@
 var runTests = function(compiledTests, fileSystem) {
+    var escapeHTML = function(string) {
+        var escapeMap = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+
+        return String(string).replace(/&(?!\w+;)|[<>"']/g, function (s) {
+            return escapeMap[s] || s;
+        });
+    };
+
     var decodeBase64 = function(base64_string) {
         var length;
         var lookup = {};
@@ -9,7 +23,7 @@ var runTests = function(compiledTests, fileSystem) {
         length = base64_string.length;
 
 
-        for (i = 0; i != alphabet.length; ++i){
+        for (i = 0; i !== alphabet.length; ++i){
             lookup[alphabet.charAt(i)] = i;
         }
 
@@ -26,7 +40,7 @@ var runTests = function(compiledTests, fileSystem) {
     };
 
     var runCode = function(code, environment) {
-        {
+        try {
             eval(code);
             return (function() {
                 return Program(environment).run();
@@ -44,7 +58,7 @@ var runTests = function(compiledTests, fileSystem) {
         args = [];
 
         if (argMatches != null) {
-            for (i = 0; i != argMatches.length; i++) {
+            for (i = 0; i !== argMatches.length; i++) {
                 args.push((argMatches[i].replace(/^\"|\"$/g, '')));
             }
         }
@@ -63,14 +77,141 @@ var runTests = function(compiledTests, fileSystem) {
         return output;
     };
 
+    var formatFeedback = function(feedback, programOutput, expectedOutput) {
+        feedback = escapeHTML(feedback).replace(/\n/g, '<br>');
+
+        var formatOutput = function(output) {
+            return '<pre>' + escapeHTML(output+'') + '</pre>';
+        };
+
+        feedback = feedback.replace(/\{\{\s*stdout\s*\}\}/g, formatOutput(programOutput.stdout));
+        feedback = feedback.replace(/\{\{\s*stderr\s*\}\}/g, formatOutput(programOutput.stderr));
+        feedback = feedback.replace(/\{\{\s*exitCode\s*\}\}/g, formatOutput(programOutput.exitCode));
+        feedback = feedback.replace(/\{\{\s*expectedStdout\s*\}\}/g, formatOutput(expectedOutput.stdout));
+        feedback = feedback.replace(/\{\{\s*expectedExitCode\s*\}\}/g, formatOutput(expectedOutput.exitCode));
+
+        return feedback;
+    };
+
     var runTest = function(compiledTest, fsInit) {
+        var i;
+
         var output = runProgram(compiledTest, fsInit);
 
+        var stdout = output.stdout;
+        var stderr = output.stderr;
+        var exitCode = parseInt(output.exitCode, 10);
+
+        var programOutput = {
+            stdout: stdout,
+            stderr: stderr,
+            exitCode: exitCode
+        };
+
+        var expectedExitCode = parseInt(compiledTest.exitCode, 10);
+        var expectedStdout = compiledTest.stdout;
+
+        var expectedOutput = {
+            stdout: expectedStdout,
+            exitCode: expectedExitCode
+        };
+
+        var caseInsensitive = (compiledTest.caseInsensitive + '') === 'true';
+        var collapseWhitespace = (compiledTest.collapseWhitespace + '') === 'true';
+        var ignoreWhitespace = (compiledTest.ignoreWhitespace + '') === 'true';
+        var trimWhitespace = (compiledTest.trimWhitespace + '') === 'true';
+
+        var ignoreExitCode = (compiledTest.ignoreExitCode + '') === 'true';
+        var ignoreStdout = (compiledTest.ignoreStdout + '') === 'true';
+        var ignoreTrailing = (compiledTest.ignoreTrailing + '') === 'true';
+
+        var stdoutLines, newStdoutLines;
+        var expectedStdoutLines, newExpectedOutLines;
+        var line;
+
+        var success = true;
+        var reason = '';
+
+        if (caseInsensitive) {
+            stdout = stdout.toLowerCase();
+            expectedStdout = expectedStdout.toLowerCase();
+        }
+
+        if (trimWhitespace) {
+            newStdoutLines = [];
+            newExpectedOutLines = [];
+
+            stdoutLines = stdout.split(/\r?\n/);
+            expectedStdoutLines = expectedStdout.split(/\r?\n/);
+
+            for (i = 0; i != stdoutLines.length; ++i) {
+                line = stdoutLines[i].replace(/^\s+|\s+$/g, '');
+                if (line !== '') {
+                    newStdoutLines.push(line);
+                }
+            }
+
+            for (i = 0; i != expectedStdoutLines.length; ++i) {
+                line = expectedStdoutLines[i].replace(/^\s+|\s+$/g, '');
+                if (line !== '') {
+                    newExpectedOutLines.push(line);
+                }
+            }
+            
+            stdout = newStdoutLines.join('\n');
+            expectedStdout = newExpectedOutLines.join('\n');
+        }
+
+        if (collapseWhitespace) {
+            stdout = stdout.replace(/\s+/g,' ');
+            expectedStdout = expectedStdout.replace(/\s+/g,' ');
+        }
+
+        if (ignoreWhitespace) {
+            stdout = stdout.replace(/\s+/g,'');
+            expectedStdout = expectedStdout.replace(/\s+/g,'');
+        }
+
+        if (!ignoreExitCode) {
+            if (exitCode !== expectedExitCode) {
+                success = false;
+
+                if (compiledTest.feedbackExitCodeFail) {
+                    reason += '<p>' + formatFeedback(compiledTest.feedbackExitCodeFail, programOutput, expectedOutput) + '</p>\n';
+                } else {
+                    reason += '<p>Program exited with code: <code>' + exitCode + '</code>,'
+                    reason += ' when expecting: <code>' + expectedExitCode + '</code>.</p>\n';
+                }
+            }
+        }
+
+        if (!ignoreStdout) {
+            if (ignoreTrailing) {
+                if (stdout.indexOf(expectedStdout) !== 0) {
+                    success = false;
+                    if (compiledTest.feedbackStdoutFail) {
+                        reason += '<p>' + formatFeedback(compiledTest.feedbackStdoutFail, programOutput, expectedOutput) + '</p>';
+                    } else {
+                        reason += '<p>Output did not start with: <pre>' + escapeHTML(expectedStdout) + '</pre>.</p>\n';
+                    }
+                }
+            } else {
+                if (stdout !== expectedStdout) {
+                    success = false;
+                    if (compiledTest.feedbackStdoutFail) {
+                        reason += '<p>' + formatFeedback(compiledTest.feedbackStdoutFail, programOutput, expectedOutput) + '</p>';
+                    } else {
+                        reason += '<p>Output did not match: <pre>' + escapeHTML(expectedStdout) + '</pre>.</p>\n';
+                    }
+                }
+            }
+        }
+
         return {
-            success: false,
+            success: success,
             test: compiledTest,
             output: output,
-            error: 'Not Implemented Yet'
+            error: reason
         }
     };
 

@@ -78,6 +78,23 @@
         width: 104px;
         margin-top: 4px;
       }
+
+      .results li {
+        display: block;
+        border-bottom: 1px solid #ccc;
+      }
+
+      .success-item h3 {
+        color: #080;
+      }
+
+      .success-item b {
+        color: #080;
+      }
+
+      .fail-item h3 {
+        color: #800;
+      }
     </style>
   </head>
   <body>
@@ -383,7 +400,10 @@
         $('#dry-run-results').text(output);
       };
 
-      runFailure = function(result) {
+      runFailure = function(testResults) {
+        var i;
+        var resultHTML;
+
         $('#run-btn').prop('disabled', false);
         $('#compile-btn').prop('disabled', false);
         $('.status').hide();
@@ -396,7 +416,28 @@
         });
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
-        $('#dry-run-results').text(result.error);
+
+        resultHTML = '<ul class="results unstyled">';
+        for (i = 0; i !== testResults.length; ++i) {
+          if (testResults[i].success) {
+            resultHTML += '<li class="success-item">';
+          } else {
+            resultHTML += '<li class="fail-item">';
+          }
+
+          resultHTML += '<h3>' + testResults[i].test.name + '</h3>';
+
+          if (testResults[i].success) {
+            resultHTML += '<b>Passed</b>';
+          } else {
+            resultHTML += testResults[i].error;
+          }
+
+          resultHTML += '</li>';
+        }
+        resultHTML += '</ul>';
+
+        $('#dry-run-results').html(resultHTML);
       };
 
       saveDocument = function(filename, callback, isNew) {
@@ -501,12 +542,12 @@
           });
         }
 
-        var results = runTests(compiledTests, fileSystem);
+        var testingResult = runTests(compiledTests, fileSystem);
 
-        if (results.success) {
-          runComplete(JSON.stringify(results, null, 2));
+        if (testingResult.success) {
+          runComplete(JSON.stringify(testingResult, null, 2));
         } else {
-          runFailure({error: JSON.stringify(results, null, 2)});
+          runFailure(testingResult.results);
         }
       };
 
