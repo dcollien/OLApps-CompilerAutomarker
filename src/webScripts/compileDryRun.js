@@ -68,7 +68,7 @@ if (missingFile !== null) {
             // add the compiled code to each of the dry-run tests
 
             tests = steps.tests;
-            
+
             for (i = 0; i != tests.length; ++i) {
                 tests[i].compiledCode = compilationResponse.compiledCode[tests[i].program];
             }
@@ -87,4 +87,4 @@ if (missingFile !== null) {
 
 
 response.setHeader('Content-Type', 'application/json');
-response.writeJSON(responseObject);
+response.writeData(JSON.stringify(responseObject, null, 2));

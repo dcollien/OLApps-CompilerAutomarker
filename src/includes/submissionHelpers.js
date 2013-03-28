@@ -277,13 +277,13 @@ doCompilation = function(settings, compilationSteps, filesWithData) {
         }
 
         compileOutput = CTools.compileFiles(settings, filesToSend, flags);
-        if (compileOutput.success) {    
+        if (compileOutput.success) {
             compiledCode[step.name] = compileOutput.compiledCode;
         } else {
             return {
                 success: false,
                 step: step,
-                error: compiledCode.error
+                error: compileOutput.error
             };
         }
     }

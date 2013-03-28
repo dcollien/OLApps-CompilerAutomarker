@@ -78,7 +78,34 @@ var runTests = function(compiledTests, fileSystem) {
     };
 
     var formatFeedback = function(feedback, programOutput, expectedOutput) {
-        feedback = escapeHTML(feedback).replace(/\n/g, '<br>');
+        var i, runLength, lineStart, lineEnd;
+        var feedbackParts = escapeHTML(feedback).split(/\n/);
+
+        // indented by 4 spaces makes a pre block
+        runLength = 0;
+        for (i = 0; i != feedbackParts.length; ++i) {
+            lineStart = '';
+            lineEnd = '<br>';
+            if (feedbackParts[i].indexOf('    ') === 0) {
+                if (runLength === 0) {
+                    lineStart = '<pre>';
+                }
+                lineEnd = '';
+
+                feedbackParts[i] = feedbackParts[i].substring(4);
+
+                runLength++;
+            } else {
+                if (runLength !== 0) {
+                    lineStart = '</pre><br>';
+                }
+                runLength = 0;
+            }
+
+            feedbackParts[i] = lineStart + feedbackParts[i] + lineEnd;
+        }
+
+        feedback = feedbackParts.join('');
 
         var formatOutput = function(output) {
             return '<pre>' + escapeHTML(output+'') + '</pre>';
@@ -157,7 +184,7 @@ var runTests = function(compiledTests, fileSystem) {
                     newExpectedOutLines.push(line);
                 }
             }
-            
+
             stdout = newStdoutLines.join('\n');
             expectedStdout = newExpectedOutLines.join('\n');
         }
@@ -207,11 +234,15 @@ var runTests = function(compiledTests, fileSystem) {
             }
         }
 
+        if (success) {
+            reason += '<p>' + formatFeedback(compiledTest.feedbackSuccess, programOutput, expectedOutput) + '</p>';
+        }
+
         return {
             success: success,
             test: compiledTest,
             output: output,
-            error: reason
+            feedback: reason
         }
     };
 

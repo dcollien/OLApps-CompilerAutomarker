@@ -20,7 +20,8 @@ view = {
   cross_icon: mediaURL('cross.png'),
   tick_icon: mediaURL('tick.png'),
   undo_icon: mediaURL('undo.png'),
-  redo_icon: mediaURL('redo.png')
+  redo_icon: mediaURL('redo.png'),
+  small_tick_icon: mediaURL('small_tick.png')
 };
 
 // <head> tag contents

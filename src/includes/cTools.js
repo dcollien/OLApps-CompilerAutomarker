@@ -56,6 +56,11 @@ var CTools = {
         compiledCode: openURL( options.url, options.headers, post_data ),
         success: true
       }
+      
+      if (returnObj.compiledCode && returnObj.compiledCode.error) {
+        returnObj.success = false;
+        returnObj.error = returnObj.compiledCode.response;
+      }
     } catch (err) {
       returnObj = {
         error: err,

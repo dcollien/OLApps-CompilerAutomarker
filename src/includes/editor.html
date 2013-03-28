@@ -84,16 +84,27 @@
         border-bottom: 1px solid #ccc;
       }
 
-      .success-item h3 {
+      .error-item {
+        border-top: 1px solid #ccc;
+        padding: 3px;
+      }
+
+      .success-item h4 {
         color: #080;
       }
 
-      .success-item b {
+      .success-item b.passed {
         color: #080;
+        padding-left: 20px;
+        background: url('{{small_tick_icon}}') no-repeat left center;
       }
 
-      .fail-item h3 {
+      .fail-item h4 {
         color: #800;
+      }
+
+      .monospace {
+        font-family: monospace;
       }
     </style>
   </head>
@@ -137,7 +148,8 @@
       <div class="tab-content feedback-content">
         <div class="tab-pane feedback-pane" id="compilation">
           <h4>Output from the last compilation:</h4>
-          <pre id="compile-errors">TODO: Compile Errors</pre>
+          <div id="compile-errors">
+          </div>
         </div>
         <div class="tab-pane feedback-pane" id="dry-run-results">
           <h4>Result of the last dry-run:</h4>
@@ -202,13 +214,14 @@
     <script src="./testing.js"></script>
     <script>
       var compiledTests, fsFiles, fileSystem;
+      var renderResults;
 
       var submissionFiles, submissionURL;
       var loadDocument, doLoad, populateFileList;
       var confirmUnsaved, doNew;
 
       var compiledImg, compileImg;
-      var editor, saveDocument, isSaved, doSubmit, doRun;
+      var editor, saveDocument, isSaved, doSubmit, doRun, doCompile;
       var currentFileName;
       var compileComplete, runComplete, compileFailure, runFailure;
       var toggleTabs;
@@ -380,10 +393,54 @@
         });
         $('#compilation-tab').parent('li').show();
         $('#compilation-tab').tab('show');
-        $('#compile-errors').text(result.error);
+
+        var errorHTML = '<div class="error-item">';
+
+        if (result.step) {
+          errorHTML += '<h4>' + result.step.name + '</h4><br>';
+          errorHTML += '<p>' + result.step.description + '</p>';
+          if (result.step.files) {
+            errorHTML += 'Files: <span class="monospace">' + result.step.files.split(',').join(' ') + '</span><br>';
+          }
+          if (result.step.flags) {
+            errorHTML += 'Compile Flags: <code>' + result.step.flags.split(',').join(' ') + '</code><br>';
+          }
+
+          errorHTML += '<pre>' + result.error + '</pre>';
+        }
+
+        errorHTML += '</div>';
+
+        $('#compile-errors').html(errorHTML);
       };
 
-      runComplete = function(output) {
+      renderResults = function(testResults) {
+        var resultHTML;
+        resultHTML = '<ul class="results unstyled">';
+        for (i = 0; i !== testResults.length; ++i) {
+          if (testResults[i].success) {
+            resultHTML += '<li class="success-item">';
+          } else {
+            resultHTML += '<li class="fail-item">';
+          }
+
+          resultHTML += '<h4>' + testResults[i].test.name + '</h4>';
+
+          if (testResults[i].success) {
+            resultHTML += '<b class="passed">Passed</b>';
+            resultHTML += '<p>' + testResults[i].feedback + '</p>'
+          } else {
+            resultHTML += testResults[i].feedback;
+          }
+
+          resultHTML += '</li>';
+        }
+        resultHTML += '</ul>';
+
+        return resultHTML;
+      };
+
+      runComplete = function(testResults) {
         $('#run-btn').prop('disabled', false);
         $('#compile-btn').prop('disabled', false);
         $('.status').hide();
@@ -397,12 +454,11 @@
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
 
-        $('#dry-run-results').text(output);
+        $('#dry-run-results').html(renderResults(testResults));
       };
 
       runFailure = function(testResults) {
         var i;
-        var resultHTML;
 
         $('#run-btn').prop('disabled', false);
         $('#compile-btn').prop('disabled', false);
@@ -417,27 +473,9 @@
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
 
-        resultHTML = '<ul class="results unstyled">';
-        for (i = 0; i !== testResults.length; ++i) {
-          if (testResults[i].success) {
-            resultHTML += '<li class="success-item">';
-          } else {
-            resultHTML += '<li class="fail-item">';
-          }
 
-          resultHTML += '<h3>' + testResults[i].test.name + '</h3>';
 
-          if (testResults[i].success) {
-            resultHTML += '<b>Passed</b>';
-          } else {
-            resultHTML += testResults[i].error;
-          }
-
-          resultHTML += '</li>';
-        }
-        resultHTML += '</ul>';
-
-        $('#dry-run-results').html(resultHTML);
+        $('#dry-run-results').html(renderResults(testResults));
       };
 
       saveDocument = function(filename, callback, isNew) {
@@ -475,6 +513,35 @@
         } else {
           alert('No document to save.');
         }
+      };
+
+      doCompile = function() {
+        $(this).prop('disabled', true);
+        $('#run-btn').prop('disabled', true);
+        $('.status').hide();
+        $('.title').show();
+        $('.compiling-status').fadeIn();
+        
+        $.ajax( {
+          type: "GET",
+          dataType: "json",
+          url: './compileDryRun',
+          success: function(result) {
+            if (result.success) {
+              compileComplete();
+
+              compiledTests = result.tests;
+              fsFiles = result.fileSystemFiles;
+            } else {
+              compiledTests = null;
+              fsFiles = null;
+              compileFailure(result);
+            }
+          },
+          error: function() {
+            alert('Unable to load ' + filename);
+          }
+        });
       };
 
       doResults = function(result) {
@@ -523,6 +590,15 @@
       };
 
       doRun = function() {
+        var performRun = function() {
+          var testingResult = runTests(compiledTests, fileSystem);
+
+          if (testingResult.success) {
+            runComplete(testingResult.results);
+          } else {
+            runFailure(testingResult.results);
+          }
+        };
 
         if (fileSystem == null) {
           $.ajax( {
@@ -532,22 +608,16 @@
             },
             dataType: "json",
             url: './loadFilesystem',
-            async: false,
             success: function(result) {
               fileSystem = result;
+              performRun();
             },
             error: function() {
               alert('Unable to load file system');
             }
           });
-        }
-
-        var testingResult = runTests(compiledTests, fileSystem);
-
-        if (testingResult.success) {
-          runComplete(JSON.stringify(testingResult, null, 2));
         } else {
-          runFailure(testingResult.results);
+          performRun();
         }
       };
 
@@ -615,32 +685,31 @@
         });
 
         $('#compile-btn').click(function(){
-          $(this).prop('disabled', true);
-          $('#run-btn').prop('disabled', true);
-          $('.status').hide();
-          $('.title').show();
-          $('.compiling-status').fadeIn();
-          
-          $.ajax( {
-            type: "GET",
-            dataType: "json",
-            url: './compileDryRun',
-            success: function(result) {
-              if (result.success) {
-                compileComplete();
-
-                compiledTests = result.tests;
-                fsFiles = result.fileSystemFiles;
-              } else {
-                compiledTests = null;
-                fsFiles = null;
-                compileFailure(result);
-              }
-            },
-            error: function() {
-              alert('Unable to load ' + filename);
-            }
-          });
+          if (!isSaved) {
+            bootbox.dialog(
+              'This document has not been saved. Would you like to save changes before compiling?',
+              [{
+                'label': 'Cancel'
+              },
+              {
+                'label': 'Compile Without Saving',
+                'class': 'btn-primary',
+                'callback': function() {
+                  doCompile();
+                }
+              },
+              {
+                'label': 'Save and Compile',
+                'class': 'btn-success',
+                'callback': function() {
+                  saveDocument();
+                  doCompile();
+                }
+              }]
+            );
+          } else {
+            doCompile();
+          }
         });
 
         $('#run-btn').click(function(){
