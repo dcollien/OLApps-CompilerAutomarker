@@ -29,15 +29,17 @@ for (i = 0; i != suppliedFileInfo.length; ++i) {
     }
 }
 
-for (i = 0; i != filesystemPageFiles.length; ++i) {
-    filename = filesystemPageFiles[i].filename;
+if (filesystemPageFiles) {
+    for (i = 0; i != filesystemPageFiles.length; ++i) {
+        filename = filesystemPageFiles[i].filename;
 
-    if (files[filename]) {
-        if (canOverwrite[filename]) {
+        if (files[filename]) {
+            if (canOverwrite[filename]) {
+                files[filename] = filesystemPageFiles[i];
+            }
+        } else {
             files[filename] = filesystemPageFiles[i];
         }
-    } else {
-        files[filename] = filesystemPageFiles[i];
     }
 }
 

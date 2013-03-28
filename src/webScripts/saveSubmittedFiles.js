@@ -2,6 +2,7 @@
 try {
   var pageUpdate = {
     isEmbedded: true,
+    isAutomarked: true,
     multiFile: request.data.multiFile,
     requiredFiles: request.data.requiredFiles.split(','),
     optionalFiles: request.data.optionalFiles.split(','),

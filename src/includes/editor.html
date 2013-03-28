@@ -158,7 +158,8 @@
         </div>
         <div class="tab-pane feedback-pane" id="testing-results">
           <h4>Result of the last submission:</h4>
-          TODO: testing-results
+          <div id="testing-results">
+          </div>
         </div>
       </div>
       <hr/>
@@ -393,6 +394,7 @@
         $('#error-title').text('Compilation Errors');
         $('#error-text').text('Your code was not compiled. Errors are shown below.');
         $('.error-status').fadeIn();
+        $('.title').show();
         $('#compile-icon').attr('src', compileImg);
 
         $('.feedback').slideDown(function() {
@@ -412,10 +414,12 @@
           if (result.step.flags) {
             errorHTML += 'Compile Flags: <code>' + result.step.flags.split(',').join(' ') + '</code><br>';
           }
-
-          errorHTML += '<pre>' + result.error + '</pre>';
         }
 
+        if (result.error) {
+          errorHTML += '<pre>' + result.error + '</pre>';
+        }
+        
         errorHTML += '</div>';
 
         $('#compile-errors').html(errorHTML);
@@ -551,18 +555,28 @@
         });
       };
 
-      doResults = function(result) {
+      doResults = function(result, isOnLoad) {
         $('.title').show();
         $('.status').hide();
 
-        if (result.completed) {
-          $('#completed-title').text('Submission Passed');
-          $('#completed-text').text('Well done! All tests passed. You have completed this activity.');
+        if (result.isCompleted) {
+
+          if (isOnLoad) {
+            $('#completed-title').text('Latest Submission Passed'); 
+          } else {
+            $('#completed-title').text('Submission Passed'); 
+          }
+          $('#completed-text').text('Well done! All tests passed.');
+
           $('.completed-status').fadeIn(function() {
             window.app.resize();
           });
         } else {
-          $('#error-title').text('Submission did not pass tests');
+          if (isOnLoad) {
+            $('#error-title').text('Latest Submission failed tests');
+          } else {
+            $('#error-title').text('Submission failed tests');
+          }
           $('#error-text').text('Your code did not pass the submission tests. See below.');
           $('.error-status').fadeIn(function() {
             window.app.resize();
@@ -574,10 +588,15 @@
         });
         $('#testing-tab').parent('li').show();
         $('#testing-tab').tab('show');
+
+        if (result.submissionResults.results) {
+          $('#testing-results').html(renderResults(result.submissionResults.results));
+        }
+
         window.app.resize();
       };
 
-      doMarking = function() {
+      doMarking = function(isOnLoad) {
         var markingCheckTimer;
 
         $('.title').show();
@@ -593,18 +612,27 @@
             dataType: "json",
             url: './checkMarking',
             success: function(result) {
-              if (results.isReady) {
+              if (result.isReady) {
                 clearInterval(markingCheckTimer);
-                doResults(result);
+
+                if (result.submissionResults) {
+                  if (result.submissionResults.results) {
+                    doResults(result, isOnLoad);
+                  } else {
+                    compileFailure(result.submissionResults);
+                  }
+                } else {
+                  alert("No marking results");
+                }
               }
             },
             error: function() {
               alert('Unable to check marking status at this time');
             }
           });
-        }, 5000 );
+        }, 3000 );
       };
-      
+
       doSubmit = function() {
         $('.title').show();
         $('.status').hide();
@@ -818,6 +846,29 @@
           currentFileName = null;
         }
         {{/isMultiFile}}
+
+        $.ajax({
+          type: "POST",
+          data: {
+            action: 'check'
+          },
+          dataType: "json",
+          url: './checkMarking',
+          success: function(result) {
+            if (result.isReady && result.submissionResults) {
+              if (result.submissionResults.results) {
+                doResults(result, true);
+              } else {
+                compileFailure(result.submissionResults);
+              }
+            } else if (!result.isReady) {
+              doMarking(true);
+            }
+          },
+          error: function() {
+            alert('Unable to check marking status at this time');
+          }
+        });
         
         if (currentFileName == null) {
           editor.setOption('readOnly', true);

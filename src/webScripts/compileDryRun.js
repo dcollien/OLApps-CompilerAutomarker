@@ -44,8 +44,13 @@ if (missingFile !== null) {
 
 
     // preprocess the files
-    preprocessingResult = doPreprocessing(pageData.preprocessingSteps, files);
-
+    if (pageData.preprocessingSteps) {
+        preprocessingResult = doPreprocessing(pageData.preprocessingSteps, files);
+    } else {
+        preprocessingResult = {
+            success: true
+        }
+    }
     if (!preprocessingResult.success) {
         // there was a problem with preprocessing 
         // (e.g. required pattern not found, or forbidden pattern found)

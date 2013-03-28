@@ -63,7 +63,7 @@ var CTools = {
       }
     } catch (err) {
       returnObj = {
-        error: err,
+        error: err.toString(),
         success: false
       }
     }

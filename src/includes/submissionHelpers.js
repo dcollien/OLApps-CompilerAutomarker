@@ -64,6 +64,10 @@ getMissingRequiredFile = function(filenames, pageData) {
     var requiredFiles = pageData.requiredFiles;
     var i, requiredFile;
 
+    if ((pageData.multiFile + '') !== 'true') {
+        requiredFiles = [pageData.singleFileName];
+    }
+
     for (i = 0; i != requiredFiles.length; ++i) {
         requiredFile = requiredFiles[i];
 
@@ -214,6 +218,10 @@ loadAutomarkingFiles = function(settings) {
 loadFiles = function(settings, pageData, files) {
     var i, file;
     var suppliedFiles = loadAutomarkingFiles(settings);
+
+    if (!suppliedFiles) {
+        return files;
+    }
 
     var filenames = {};
     var suppliedFileLookup = {};

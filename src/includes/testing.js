@@ -108,9 +108,9 @@ var runTests = function(compiledTests, fileSystem) {
         feedback = feedbackParts.join('');
 
         var formatOutput = function(output) {
-            return '<pre>' + escapeHTML(output+'') + '</pre>';
+            return '<pre>' + escapeHTML(output+'').replace(/\n/g, '<span style="color:#88f;">&crarr;</span>\n') + '</pre>';
         };
-
+        
         feedback = feedback.replace(/\{\{\s*stdout\s*\}\}/g, formatOutput(programOutput.stdout));
         feedback = feedback.replace(/\{\{\s*stderr\s*\}\}/g, formatOutput(programOutput.stderr));
         feedback = feedback.replace(/\{\{\s*exitCode\s*\}\}/g, formatOutput(programOutput.exitCode));
@@ -159,6 +159,10 @@ var runTests = function(compiledTests, fileSystem) {
         var success = true;
         var reason = '';
 
+        // remove \r\n
+        stdout = stdout.replace(/\r\n/g, '\n');
+        expectedStdout = expectedStdout.replace(/\r\n/g, '\n');
+
         if (caseInsensitive) {
             stdout = stdout.toLowerCase();
             expectedStdout = expectedStdout.toLowerCase();
@@ -168,8 +172,8 @@ var runTests = function(compiledTests, fileSystem) {
             newStdoutLines = [];
             newExpectedOutLines = [];
 
-            stdoutLines = stdout.split(/\r?\n/);
-            expectedStdoutLines = expectedStdout.split(/\r?\n/);
+            stdoutLines = stdout.split(/\n/);
+            expectedStdoutLines = expectedStdout.split(/\n/);
 
             for (i = 0; i != stdoutLines.length; ++i) {
                 line = stdoutLines[i].replace(/^\s+|\s+$/g, '');
@@ -190,8 +194,10 @@ var runTests = function(compiledTests, fileSystem) {
         }
 
         if (collapseWhitespace) {
-            stdout = stdout.replace(/\s+/g,' ');
-            expectedStdout = expectedStdout.replace(/\s+/g,' ');
+            stdout = stdout.replace(/[ \t]+/g,' ');
+            stdout = stdout.replace(/\n+/g, '\n');
+            expectedStdout = expectedStdout.replace(/[ \t]+/g,' ');
+            expectedStdout = expectedStdout.replace(/\n+/g, '\n');
         }
 
         if (ignoreWhitespace) {
