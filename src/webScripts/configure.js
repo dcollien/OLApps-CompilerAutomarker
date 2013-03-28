@@ -101,7 +101,7 @@ renderStep = function() {
   stepData = steps[step];
 
   // download page data
-  page = OpenLearning.page.getData( request.user );
+  page = OpenLearning.page.getData(request.user);
   pageData = page.data;
 
   // set defaults

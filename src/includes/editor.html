@@ -124,7 +124,7 @@
       </div>
       <div class="status marking-status hide">
         <span class="lead"><img src="{{waiting_spinner}}"> Running Tests</span>
-        ...&nbsp; Your code is awaiting testing. Results will appear here shortly, or you may return to this page later.
+        ...&nbsp; Your code is awaiting testing. You can wait, or return to this page later.
       </div>
       <div class="status completed-status hide">
         <span class="lead"><img src="{{tick_icon}}"> <span id="completed-title"></span></span>
@@ -167,6 +167,7 @@
 
     <div class="container-fluid">
       <div class="row-fluid">
+        {{#isMultiFile}}
         <div class="span2">
           <ul class="nav nav-list files-list">
             <li><small>Loading...</small></li>
@@ -176,7 +177,13 @@
           <button class="btn btn-mini bar-btn" id="upload"><i class="icon-upload"></i> Upload</button>
           <button class="btn btn-mini bar-btn" id="new"><i class="icon-file"></i> New</button>
         </div>
+        {{/isMultiFile}}
+        {{#isMultiFile}}
         <div class="span10">
+        {{/isMultiFile}}
+        {{^isMultiFile}}
+        <div class="span12">
+        {{/isMultiFile}}
           <div class="btn-toolbar">
             <div class="pull-right">
               <div class="btn-group">
@@ -550,13 +557,13 @@
 
         if (result.completed) {
           $('#completed-title').text('Submission Passed');
-          $('#completed-text').text('Well done! Your code passed the submission tests. You have completed this activity.');
+          $('#completed-text').text('Well done! All tests passed. You have completed this activity.');
           $('.completed-status').fadeIn(function() {
             window.app.resize();
           });
         } else {
           $('#error-title').text('Submission did not pass tests');
-          $('#error-text').text('Your code did not pass the submission tests. Details are shown below.');
+          $('#error-text').text('Your code did not pass the submission tests. See below.');
           $('.error-status').fadeIn(function() {
             window.app.resize();
           });
@@ -571,22 +578,52 @@
       };
 
       doMarking = function() {
+        var markingCheckTimer;
+
         $('.title').show();
         $('.status').hide();
         $('.marking-status').fadeIn();
 
-        setTimeout( function() {
-          doResults({ completed: Math.random() > 0.5 });
-        }, 2000 );
+        markingCheckTimer = setInterval(function() {
+          $.ajax({
+            type: "POST",
+            data: {
+              action: 'check'
+            },
+            dataType: "json",
+            url: './checkMarking',
+            success: function(result) {
+              if (results.isReady) {
+                clearInterval(markingCheckTimer);
+                doResults(result);
+              }
+            },
+            error: function() {
+              alert('Unable to check marking status at this time');
+            }
+          });
+        }, 5000 );
       };
-
+      
       doSubmit = function() {
         $('.title').show();
         $('.status').hide();
         $('.submitting-status').fadeIn();
 
-        // TODO: submitting
-        setTimeout( doMarking, 2000 );
+        $.ajax({
+          type: "POST",
+          data: {
+            action: 'submit'
+          },
+          dataType: "json",
+          url: './submit',
+          success: function(result) {
+            doMarking();
+          },
+          error: function() {
+            alert('Unable to submit at this time');
+          }
+        });
       };
 
       doRun = function() {
@@ -770,8 +807,18 @@
         $('#run-btn').prop('disabled', true);
 
         isSaved = true;
-        loadFileList();
 
+        {{#isMultiFile}}
+        loadFileList();
+        {{/isMultiFile}}
+
+        {{^isMultiFile}}
+        currentFileName = '{{singleFileName}}';
+        if (currentFileName === '') {
+          currentFileName = null;
+        }
+        {{/isMultiFile}}
+        
         if (currentFileName == null) {
           editor.setOption('readOnly', true);
           $('.CodeMirror').addClass('disabled');
@@ -796,6 +843,7 @@
                 loadFileList();
                 editor.setOption('readOnly', false);
                 $('.CodeMirror').removeClass('disabled');
+                $('#help-text').empty().append('Created ').append( $('<b>').text(currentFileName) );
               }, true); // isNew
             }
           });

@@ -4,6 +4,7 @@ include('escape.js');
 
 var view;
 var accessDenied, renderEditor;
+var page, pageData;
 
 // set up the default view
 view = {
@@ -46,6 +47,13 @@ view.head += '<script type="text/javascript" src="' + mediaURL('bootbox.min.js')
 view.head += request.appInitScript + '\n';
 view.head += '<script type="text/javascript" src="/common/select2/select2.min.js"></script>\n';
 
+
+page = OpenLearning.page.getData(request.user);
+pageData = page.data;
+pageData.multiFile = (pageData.multiFile + '') === 'true';
+
+view.isMultiFile = pageData.multiFile;
+view.singleFileName = pageData.singleFileName;
 
 renderEditor = function() {
   render(include('editor.html'), view);

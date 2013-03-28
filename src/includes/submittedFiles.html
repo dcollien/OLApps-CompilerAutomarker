@@ -59,7 +59,7 @@
           <label class="control-label" for="embeddedFilename">File Name:</label>
           <div class="controls">
             <!-- get value from server -->
-            <input type="text" name="embeddedFilename" value="{{singleFileName}}" placeholder="File Name">
+            <input type="text" id="embeddedFilename" name="embeddedFilename" value="{{singleFileName}}" placeholder="File Name">
           </div>
         </div>
 
@@ -462,7 +462,8 @@
             multiFile: multiFile,
             requiredFiles: $('#requiredFileNames').val(),
             optionalFiles: $('#optionalFileNames').val(),
-            precludedFiles: $('#precludedFileNames').val()
+            precludedFiles: $('#precludedFileNames').val(),
+            singleFileName: $('#embeddedFilename').val()
           };
 
           //console.log( data );
