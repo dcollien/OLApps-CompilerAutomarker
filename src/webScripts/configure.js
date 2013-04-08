@@ -40,11 +40,11 @@ steps = {
   'sharing': {
     template: 'sharing.html',
     fields: [
+      'tests',
       'isPublic',
       'isOutputOnlyShared',
       'isPrivate',
       'sharedFile',
-      'compilationSteps',
       'isFileSystemExhibited'
     ]
   },
@@ -130,7 +130,7 @@ renderStep = function() {
   pageData.isPublic = pageData.sharing === 'public';
   pageData.isOutputOnlyShared = pageData.sharing === 'output';
   pageData.isPrivate = pageData.sharing === 'private';
-  pageData.isFileSystemExhibited = pageData.outputExhibited === '--file-system';
+  pageData.isFileSystemExhibited = pageData.outputExhibited.indexOf('--file-system') === 0;
 
   // consolidate page data text
   pageData.requiredFiles = pageData.requiredFiles.join(',');
@@ -138,11 +138,18 @@ renderStep = function() {
   pageData.precludedFiles = pageData.precludedFiles.join(',');
 
   // select any shared/exhibited outputs
-  if (!pageData.isFileSystemExhibited) {
-    if (pageData.outputExhibited) {
-      for (i = 0; i != pageData.compilationSteps.length; ++i) {
-        if (pageData.outputExhibited === pageData.compilationSteps[i].name) {
-          pageData.compilationSteps[i].exhibited = true;
+
+  if (pageData.outputExhibited) {
+    if (!pageData.isFileSystemExhibited) {
+      for (i = 0; i != pageData.tests.length; ++i) {
+        if (pageData.outputExhibited === pageData.tests[i].name) {
+          pageData.tests[i].exhibited = true;
+        }
+      }
+    } else {
+      for (i = 0; i != pageData.tests.length; ++i) {
+        if (pageData.outputExhibited === '--file-system-' + pageData.tests[i].name) {
+          pageData.tests[i].fileExhibited = true;
         }
       }
     }

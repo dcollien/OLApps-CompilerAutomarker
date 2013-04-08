@@ -326,6 +326,8 @@
               
               editor.setOption('readOnly', false);
               $('.CodeMirror').removeClass('disabled');
+
+              window.app.resize();
             },
             error: function() {
               alert('Unable to load ' + filename);
@@ -369,7 +371,9 @@
       };
 
       toggleTabs = function() {
-        $('.feedback-content').slideToggle();
+        $('.feedback-content').slideToggle(function() {
+          window.app.resize();
+        });
         if ($('.feedback-content').data('hidden')) {
           $(this).html('<i class="icon-chevron-up"></i>');
           $('.feedback-content').data('hidden', false);
@@ -377,16 +381,19 @@
           $('.feedback-content').data('hidden', true);
           $(this).html('<i class="icon-chevron-down"></i>');
         }
+
+        window.app.resize();
       };
 
       $('#feedback-tabs').find('a[data-toggle="tab"]').on('click', function(){
-        $('.feedback-content').slideDown();
+        $('.feedback-content').slideDown(function() {
+          window.app.resize();
+        });
         $('#hide-feedback').html('<i class="icon-chevron-up"></i>');
         $('.feedback-content').data('hidden', false);
       });
 
       $('#hide-feedback').click(toggleTabs);
-
 
       compileComplete = function() {
         $('#run-btn').prop('disabled', false);
@@ -400,6 +407,8 @@
         $('#compile-icon').attr('src', compiledImg);
 
         $('#compile-errors').text('Compiled successfully.');
+
+        window.app.resize();
       };
 
       compileFailure= function(result) {
@@ -438,6 +447,8 @@
         errorHTML += '</div>';
 
         $('#compile-errors').html(errorHTML);
+
+        window.app.resize();
       };
 
       renderResults = function(testResults) {
@@ -481,6 +492,7 @@
         $('#dry-run-tab').tab('show');
 
         $('#dry-run-results').html(renderResults(testResults));
+        window.app.resize();
       };
 
       runFailure = function(testResults) {
@@ -499,9 +511,8 @@
         $('#dry-run-tab').parent('li').show();
         $('#dry-run-tab').tab('show');
 
-
-
         $('#dry-run-results').html(renderResults(testResults));
+        window.app.resize();
       };
 
       saveDocument = function(filename, callback, isNew) {
@@ -548,6 +559,8 @@
         $('.title').show();
         $('.compiling-status').fadeIn();
         
+        window.app.resize();
+
         $.ajax( {
           type: "GET",
           dataType: "json",
@@ -691,6 +704,7 @@
       };
 
       doSubmit = function() {
+        $('.result-note').hide();
         $('.title').show();
         $('.status').hide();
         $('.submitting-status').fadeIn();

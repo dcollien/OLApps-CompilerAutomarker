@@ -29,6 +29,37 @@ var compilationResponse;
 var tests;
 var i;
 
+var bytesToBase64 = function(input) {
+    var c1, c2, c3, i, keyString, len, out;
+    keyString = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    len = input.length;
+    i = 0;
+    out = "";
+    while (i < len) {
+        c1 = input[i++] & 0xff;
+        if (i === len) {
+            out += keyString.charAt(c1 >> 2);
+            out += keyString.charAt((c1 & 0x3) << 4);
+            out += '==';
+            break;
+        }
+        c2 = input[i++];
+        if (i === len) {
+            out += keyString.charAt(c1 >> 2);
+            out += keyString.charAt(((c1 & 0x3) << 4) | ((c2 & 0xF0) >> 4));
+            out += keyString.charAt((c2 & 0xF) << 2);
+            out += "=";
+            break;
+        }
+        c3 = input[i++];
+        out += keyString.charAt(c1 >> 2);
+        out += keyString.charAt(((c1 & 0x3) << 4) | ((c2 & 0xF0) >> 4));
+        out += keyString.charAt(((c2 & 0xF) << 2) | ((c3 & 0xC0) >> 6));
+        out += keyString.charAt(c3 & 0x3F);
+    }
+    return out;
+};
+
 if (missingFile !== null) {
     // report missing file
     compilationObject = {
@@ -107,6 +138,54 @@ if (compilationObject.success) {
             results: conciseResults
         },
         isCompleted: testingResult.success
+    }
+
+    if (testingResult.success) {
+        // Do exhibiting
+        if (pageData.outputExhibited) {
+            var fileData;
+            var exhibitedData = null;
+
+            if (pageData.outputExhibited.indexOf('--file-system') === 0) {
+                for (i = 0; i != results.length; ++i) {
+                    if (pageData.outputExhibited === '--file-system-' + results[i].test.name) {
+                        fileData = results[i].output.files.contents[pageData.sharedFile];
+
+                        if (fileData && fileData.contents) {
+                            exhibitedData = fileData.contents;
+                        }
+                        break;
+                    }
+                }
+
+
+                OpenLearning.activity.setSubmissionExhibit(
+                    data.user, 'file', pageData.sharedFile, {
+                        file: {
+                            filename: pageData.sharedFile,
+                            data: bytesToBase64(exhibitedData),
+                            encoding: 'base64'
+                        }
+                    }
+                );
+            } else {
+                for (i = 0; i != results.length; ++i) {
+                    if (pageData.outputExhibited === results[i].test.name) {
+                        exhibitedData = results[i].output.stdout;
+                        break;
+                    }
+                }
+
+                OpenLearning.activity.setSubmissionExhibit(
+                    data.user, 'file', 'stdout', {
+                        file: {
+                            filename: 'stdout.txt',
+                            data: exhibitedData
+                        }
+                    }
+                );
+            }
+        }
     }
 } else {
     submissionMetadata = {

@@ -32,10 +32,12 @@
           </label>
           <div class="controls">
               <select id="outputExhibited">
-                {{#compilationSteps}}
+                {{#tests}}
                 <option value="{{name}}" {{#exhibited}}selected{{/exhibited}}>{{name}} (stdout)</option>
-                {{/compilationSteps}}
-                <option value="--file-system" {{#isFileSystemExhibited}}selected{{/isFileSystemExhibited}}>File system file</option>
+                {{/tests}}
+                {{#tests}}
+                <option value="--file-system-{{name}}" {{#fileExhibited}}selected{{/fileExhibited}}>{{name}} (file)</option>
+                {{/tests}}
               </select>
               <input type="text" id="fileNameInput" placeholder="File Name" value="{{sharedFile}}" disabled>
           </div>
@@ -53,13 +55,13 @@
         var changeSharingOptions, changeOutput;
 
         changeOutput = function() {
-          $('#fileNameInput').prop('disabled', $(this).val() !== '--file-system');
+          $('#fileNameInput').prop('disabled', $(this).val().indexOf('--file-system') !== 0);
         };
 
         changeSharingOptions = function() {
           $('#outputExhibited').prop('disabled', $(this).val() === 'private');
 
-          if ($('#outputExhibited').val() === '--file-system') {
+          if ($('#outputExhibited').val().indexOf('--file-system') === 0) {
             $('#fileNameInput').prop('disabled', $(this).val() === 'private');
           }
         };
