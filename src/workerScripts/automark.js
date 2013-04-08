@@ -119,6 +119,8 @@ if (compilationObject.success) {
     }
 }
 
+submissionMetadata.isFirstNotification = true;
+
 var marks = {}
 marks[data.user] = { completed: submissionMetadata.isCompleted };
 

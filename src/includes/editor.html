@@ -106,9 +106,22 @@
       .monospace {
         font-family: monospace;
       }
+
+      .success-color {
+        color: #080;
+      }
+
+      .fail-color {
+        color: #800;
+      }
     </style>
   </head>
   <body>
+    <div class="result-note hide">
+      <span id="result-note-success" class="hide">Your last submission <b class="success-color">passed all tests</b>.</span>
+      <span id="result-note-fail" class="hide">Your last submission <b class="fail-color">did not pass</b>.</span>
+      <a href="#" id="see-results"> See Results</a>
+    </div>
     <div class="title well well-small hide">
       <div class="status compiling-status hide">
         <span class="lead"><img src="{{compiling_spinner}}"> Compiling</span>
@@ -233,6 +246,8 @@
       var currentFileName;
       var compileComplete, runComplete, compileFailure, runFailure;
       var toggleTabs;
+
+      var markingCheckTimer;
 
       fileSystem = null;
 
@@ -419,7 +434,7 @@
         if (result.error) {
           errorHTML += '<pre>' + result.error + '</pre>';
         }
-        
+
         errorHTML += '</div>';
 
         $('#compile-errors').html(errorHTML);
@@ -555,22 +570,45 @@
         });
       };
 
-      doResults = function(result, isOnLoad) {
+      $('#see-results').click(function(evt) {
+        evt.stopPropagation();
+
+        $('.result-note').hide();
         $('.title').show();
+
+        $('.feedback').slideDown(function() {
+          window.app.resize();
+        });
+        
+
+        $('#testing-tab').parent('li').show();
+        $('#testing-tab').tab('show');
+
+        return false;
+      });
+
+      doResults = function(result, isOnLoad) {
+        if (isOnLoad && !result.isFirstNotification) {
+          $('.title').hide();
+        } else {
+          $('.title').show();
+        }
+
         $('.status').hide();
 
         if (result.isCompleted) {
 
+          $('#completed-text').text('Well done! All tests passed.');
           if (isOnLoad) {
-            $('#completed-title').text('Latest Submission Passed'); 
+            $('#completed-title').text('Latest Submission Passed');
           } else {
             $('#completed-title').text('Submission Passed'); 
           }
-          $('#completed-text').text('Well done! All tests passed.');
 
           $('.completed-status').fadeIn(function() {
             window.app.resize();
           });
+
         } else {
           if (isOnLoad) {
             $('#error-title').text('Latest Submission failed tests');
@@ -583,11 +621,30 @@
           });
         }
 
-        $('.feedback').slideDown(function() {
-          window.app.resize();
-        });
-        $('#testing-tab').parent('li').show();
-        $('#testing-tab').tab('show');
+        if (isOnLoad && !result.isFirstNotification) {
+          $('.result-note').show();
+          if (result.isCompleted) {
+            $('#result-note-success').show();
+          } else {
+            $('#result-note-fail').show();
+          }
+        } else {
+          if (result.isFirstNotification) {
+            if (result.isCompleted) {
+              window.app.sendMessage('notify', {'title':'Completed', 'type': 'success', 'text': 'Latest submission passed'});
+            } else {
+              window.app.sendMessage('notify', {'title':'Tests Failed', 'type': 'error', 'text': 'Latest submission failed tests'});
+            }
+          }
+
+          $('.feedback').slideDown(function() {
+            window.app.resize();
+          });
+          
+
+          $('#testing-tab').parent('li').show();
+          $('#testing-tab').tab('show');
+        }
 
         if (result.submissionResults.results) {
           $('#testing-results').html(renderResults(result.submissionResults.results));
@@ -597,7 +654,6 @@
       };
 
       doMarking = function(isOnLoad) {
-        var markingCheckTimer;
 
         $('.title').show();
         $('.status').hide();
@@ -614,6 +670,7 @@
             success: function(result) {
               if (result.isReady) {
                 clearInterval(markingCheckTimer);
+                markingCheckTimer = null;
 
                 if (result.submissionResults) {
                   if (result.submissionResults.results) {
@@ -637,6 +694,11 @@
         $('.title').show();
         $('.status').hide();
         $('.submitting-status').fadeIn();
+
+        if (typeof markingCheckTimer !== 'undefined' && markingCheckTimer !== null) {
+          clearInterval(markingCheckTimer);
+          markingCheckTimer = null;
+        }
 
         $.ajax({
           type: "POST",
