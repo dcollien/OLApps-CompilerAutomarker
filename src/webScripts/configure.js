@@ -130,8 +130,13 @@ renderStep = function() {
   pageData.isPublic = pageData.sharing === 'public';
   pageData.isOutputOnlyShared = pageData.sharing === 'output';
   pageData.isPrivate = pageData.sharing === 'private';
-  pageData.isFileSystemExhibited = pageData.outputExhibited.indexOf('--file-system') === 0;
 
+  if (pageData.outputExhibited) {
+    pageData.isFileSystemExhibited = pageData.outputExhibited.indexOf('--file-system') === 0;
+  } else {
+    pageData.isFileSystemExhibited = false;
+  }
+  
   // consolidate page data text
   pageData.requiredFiles = pageData.requiredFiles.join(',');
   pageData.optionalFiles = pageData.optionalFiles.join(',');

@@ -116,6 +116,7 @@ if (missingFile !== null) {
     }
 }
 
+var outputFile = null;
 if (compilationObject.success) {
     var testingResult = runTests(compilationObject.tests, compilationObject.fileSystemFiles);
 
@@ -158,16 +159,11 @@ if (compilationObject.success) {
                     }
                 }
 
-
-                OpenLearning.activity.setSubmissionExhibit(
-                    data.user, 'file', pageData.sharedFile, {
-                        file: {
-                            filename: pageData.sharedFile,
-                            data: bytesToBase64(exhibitedData),
-                            encoding: 'base64'
-                        }
-                    }
-                );
+                outputFile = {
+                    filename: pageData.sharedFile,
+                    data: bytesToBase64(exhibitedData),
+                    encoding: 'base64'
+                }
             } else {
                 for (i = 0; i != results.length; ++i) {
                     if (pageData.outputExhibited === results[i].test.name) {
@@ -176,14 +172,10 @@ if (compilationObject.success) {
                     }
                 }
 
-                OpenLearning.activity.setSubmissionExhibit(
-                    data.user, 'file', 'stdout', {
-                        file: {
-                            filename: 'stdout.txt',
-                            data: exhibitedData
-                        }
-                    }
-                );
+                outputFile = {
+                    filename: 'stdout.txt',
+                    data: exhibitedData
+                }
             }
         }
     }
@@ -206,8 +198,25 @@ marks[data.user] = { completed: submissionMetadata.isCompleted };
 // save marks on openlearning
 OpenLearning.activity.setMarks(marks);
 
+var submissionData = {
+    metadata: submissionMetadata
+};
+
+if (outputFile) {
+    if (pageData.sharing === 'outputOnly') {
+        OpenLearning.activity.setSubmissionExhibit(
+            data.user, 'file', outputFile.filename, {
+                file: outputFile
+            }
+        );
+    } else if (pageData.sharing === 'public') {
+        submissionData.files = [outputFile];   
+    }
+}
+
 OpenLearning.activity.saveSubmission(
     data.user,
-    { metadata: submissionMetadata }
+    submissionData,
+    'multi-file'
 );
 

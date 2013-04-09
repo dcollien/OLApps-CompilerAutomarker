@@ -157,6 +157,7 @@ replaceAllFiles = function(search, replace, files, nameMatch) {
 
 processFiles = function(filesWithData, preprocessingStep, matchString) {
     var re;
+    var files = filesWithData;
     var result = {
         action: preprocessingStep.action,
         success: false
@@ -170,7 +171,7 @@ processFiles = function(filesWithData, preprocessingStep, matchString) {
     re = new RegExp(preprocessingStep.search);
     if (preprocessingStep.action === "replace") {
         result.success = true;
-        replaceAllFiles(re, preprocessingStep.replace, filesWithData, matchString);
+        files = replaceAllFiles(re, preprocessingStep.replace, filesWithData, matchString);
     } else if (preprocessingStep.action === "require") {
         result.success = requireAllFiles(re, filesWithData, matchString);
         result.message = 'A requirement was not met';
@@ -178,6 +179,8 @@ processFiles = function(filesWithData, preprocessingStep, matchString) {
         result.success = forbidAllFiles(re, filesWithData, matchString);
         result.message = 'A file contains forbidden data';
     }
+
+    result.files = files;
 
     return result;
 };
@@ -194,6 +197,8 @@ doPreprocessing = function(preprocessingSteps, filesWithData) {
             matchString = fileMatches[fileIndex];
             result = processFiles(filesWithData, preprocessingSteps[i], matchString);
 
+            filesWithData = result.files;
+            
             if (!result.success) {
                 return {
                     success: false,
@@ -204,7 +209,8 @@ doPreprocessing = function(preprocessingSteps, filesWithData) {
     }
 
     return {
-        success: true
+        success: true,
+        files: filesWithData
     };
 };
 
@@ -226,10 +232,12 @@ loadFiles = function(settings, pageData, files) {
     var filenames = {};
     var suppliedFileLookup = {};
 
+    // build set of filenames for submitted files
     for (i = 0; i != files.length; ++i) {
         filenames[files[i].filename] = files[i].filename;
     }
 
+    // make a lookup by filename for supplied files
     for (i = 0; i != suppliedFiles.length; ++i) {
         file = suppliedFiles[i];
         suppliedFileLookup[file.filename] = file;
@@ -237,6 +245,8 @@ loadFiles = function(settings, pageData, files) {
 
     // go through automarking supplied files
     for (i = 0; i != pageData.compilationFiles.length; ++i) {
+        file = pageData.compilationFiles[i];
+
         if (filenames[file.filename] === file.filename) {
             // a file has already been submitted with this name
             if (file.overwrite && (file.overwrite+'') === 'true') {
@@ -274,14 +284,14 @@ doCompilation = function(settings, compilationSteps, filesWithData) {
 
         filesToSend = [];
         for (fileIndex = 0; fileIndex != files.length; ++fileIndex) {
-            if (!fileLookup[files[fileIndex]]) {
+            if (fileLookup.hasOwnProperty(files[fileIndex])) {
+                filesToSend.push(fileLookup[files[fileIndex]]);
+            } else {
                 return {
                     success: false,
-                    step: step,
-                    error: JSON.stringify(filesWithData) + '\n' + JSON.stringify(files) + '\n' + files[fileIndex]
-                };
+                    error: 'File not found: ' + files[fileIndex]
+                }
             }
-            filesToSend.push(fileLookup[files[fileIndex]]);
         }
 
         compileOutput = CTools.compileFiles(settings, filesToSend, flags);

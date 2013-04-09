@@ -577,8 +577,11 @@
               compileFailure(result);
             }
           },
-          error: function() {
-            alert('Unable to load ' + filename);
+          error: function(response) {
+            console && console.log(response);
+            alert('Unable to compile at this time');
+            $('.compiling-status').hide();
+            $('.title').hide();
           }
         });
       };

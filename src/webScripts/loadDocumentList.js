@@ -5,7 +5,7 @@ var loadSubmission = function() {
   submissionPage = OpenLearning.activity.getSubmission(request.user, []); // no file reads
   submission = submissionPage.submission;
 
-  if (submission.pageType != 'multi-file') {
+  if (!submission || submission.pageType != 'multi-file') {
     OpenLearning.activity.saveSubmission(request.user, {}, 'multi-file');
   }
   
@@ -15,7 +15,9 @@ var loadSubmission = function() {
     files = [];
   }
   
-  responseObject.submissionURL = submissionPage.url;
+  if (submissionPage) {
+    responseObject.submissionURL = submissionPage.url;
+  }
 
   responseObject.files = [];
 
