@@ -1,3 +1,4 @@
+var data;
 
 try {
   var pageUpdate = {
@@ -9,6 +10,23 @@ try {
     precludedFiles: request.data.precludedFiles.split(','),
     singleFileName: request.data.singleFileName
   };
+  
+  if ((pageUpdate.multiFile+'') !== 'true') {
+    // only a single file submitted, update preprocessing to match
+    data = OpenLearning.page.getData(request.user).data;
+
+    // ensure preprocessingSteps field exists
+    if (!data.preprocessingSteps) {
+      data.preprocessingSteps = [];
+    }
+
+    // save single file name to the steps files
+    for (i = 0; i != data.preprocessingSteps.length; ++i) {
+      data.preprocessingSteps[i].files = pageUpdate.singleFileName;
+    }
+
+    pageUpdate.preprocessingSteps = data.preprocessingSteps;
+  }
   
   OpenLearning.page.setData(pageUpdate, request.user);
   response.writeText('success');

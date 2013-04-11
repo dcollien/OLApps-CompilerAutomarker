@@ -71,8 +71,9 @@ var runTests = function(compiledTests, fileSystem) {
 
         output = runCode(compiledTest.compiledCode, environment);
 
-        console && console.log("OUT");
-        console && console.log(output);
+        if (output.error) {
+            output.stderr += output.error + '\n';
+        }
 
         return output;
     };
@@ -108,7 +109,7 @@ var runTests = function(compiledTests, fileSystem) {
         feedback = feedbackParts.join('');
 
         var formatOutput = function(output) {
-            return '<pre>' + escapeHTML(output+'').replace(/\n/g, '<span style="color:#88f;">&crarr;</span>\n') + '</pre>';
+            return '<pre>' + escapeHTML(output+'').replace(/\n/g, '<span style="color:#ccf;">&crarr;</span>\n') + '</pre>';
         };
         
         feedback = feedback.replace(/\{\{\s*stdout\s*\}\}/g, formatOutput(programOutput.stdout));

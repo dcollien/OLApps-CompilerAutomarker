@@ -52,7 +52,7 @@ if (missingFile !== null) {
             success: true
         }
     }
-    
+
     if (!preprocessingResult.success) {
         // there was a problem with preprocessing 
         // (e.g. required pattern not found, or forbidden pattern found)

@@ -92,8 +92,9 @@
         </div>
 
         <div class="form-actions">
-          <!-- if it's been filled in before, make this say "Save" -->
-          <a href="./configure?step=suppliedFiles" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./configure?step=suppliedFiles" class="btn pull-right">Next &rarr;</a>
+          <span class="pull-right">&nbsp;</span>
+          <button id="save-btn" class="btn pull-right btn-primary">Save</button>
         </div>
       </form>
     </div>
@@ -172,7 +173,7 @@
       var editingStep = null;
 
       var populatePreprocessingModal = function(step) {
-        //console.log( 'populating with:', step );
+        console.log( 'populating with:', step );
 
         $('#newPreprocessorAction').val(step.action).change();
         $('#newPreprocessorOldName').val(step.name);
@@ -317,7 +318,10 @@
 
             tags = { results: required.concat( optional ).concat( precluded ) };
 
-            search.callback( tags );
+            if (search) {
+              search.callback( tags );
+            }
+            return tags;
           },
           width: 'element'
         });
@@ -499,8 +503,9 @@
 
         changeFileSubmissionOptions();
 
-        $(window).unload(function() {
+        $('#save-btn').click(function() {
           save();
+          return false;
         });
       });
     </script>

@@ -54,11 +54,20 @@
       }
       .help-container {
         height: 12px;
-        padding: 0;
-        margin-top: -8px;
+        padding-left: 6px;
         font-size: 12px;
         padding-bottom: 8px;
         color: #666;
+        background-color: #fff;
+        background: -moz-linear-gradient(left, #f0f0f0 0%, #ffffff 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, right top, color-stop(0%,#f0f0f0), color-stop(100%,#ffffff)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(left, #f0f0f0 0%,#ffffff 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(left, #f0f0f0 0%,#ffffff 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(left, #f0f0f0 0%,#ffffff 100%); /* IE10+ */
+        background: linear-gradient(to right, #f0f0f0 0%,#ffffff 100%); /* W3C */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0f0f0', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+
+        margin-top: 3px;
       }
       .title {
         height: 32px;
@@ -113,6 +122,24 @@
 
       .fail-color {
         color: #800;
+      }
+
+      .button-label {
+        font-weight: 400;
+        font-size: 12px;
+        padding-right: 4px;
+        color: #555;
+      }
+
+      .inline {
+        display: inline-block;
+        min-width: 10px;
+      }
+
+      input.file {
+        position: relative;
+        text-align: right;
+        z-index: 2;
       }
     </style>
   </head>
@@ -200,23 +227,32 @@
         {{/isMultiFile}}
           <div class="btn-toolbar">
             <div class="pull-right">
-              <div class="btn-group">
-                <button class="btn toolbar-button btn-success" title="Submit for further testing and grading" id="submit-btn">Submit and Run Tests &raquo;</button>
+              <div class="inline">
+                <div class="button-label">Dry Run:</div>
+                <div class="btn-group">
+                  <button id="compile-btn" class="btn toolbar-button" data-title="Compile"><img id="compile-icon" src="{{compile_icon}}"></button>
+                  <button id="run-btn" class="btn toolbar-button" data-title="Dry-Run" disabled><i class="icon-play"></i></button>
+                </div>
+              </div>
+
+              <div class="inline">
+              </div>
+
+              <div class="inline">
+                <div class="button-label">Submission:</div>
+                <div class="btn-group">
+                  <button class="btn toolbar-button btn-success" data-title="Submit for further testing and grading" id="submit-btn">Submit and Run Tests &raquo;</button>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="btn-toolbar">
+          <div class="inline">
+            <div class="button-label">Editing:</div>
             <div class="btn-group">
-              <button id="save-btn" class="btn toolbar-button" title="Save $filename"><i class="icon-download-alt"></i></button>
-            </div>
-            <div class="btn-group">
-              <button id="undo-btn" class="btn toolbar-button" title="Undo"><img src="{{undo_icon}}"></button>
-              <button id="redo-btn" class="btn toolbar-button" title="Redo"><img src="{{redo_icon}}"></button>
-            </div>
-            <div class="btn-group">
-              <button id="compile-btn" class="btn toolbar-button" title="Compile"><img id="compile-icon" src="{{compile_icon}}"></button>
-              <button id="run-btn" class="btn toolbar-button" title="Dry-Run" disabled><i class="icon-play"></i></button>
+              <button id="save-btn" class="btn toolbar-button" data-title="Save $filename"><i class="icon-download-alt"></i></button>
+              <button id="undo-btn" class="btn toolbar-button" data-title="Undo"><img src="{{undo_icon}}"></button>
+              <button id="redo-btn" class="btn toolbar-button" data-title="Redo"><img src="{{redo_icon}}"></button>
             </div>
           </div>
 
@@ -225,6 +261,69 @@
           <div class="editor-container">
             <textarea class="editor" id="fileEditor"></textarea>
           </div>
+
+          {{^isMultiFile}}
+          <br><br>
+          <div class="inline">
+            <div class="button-label">Replace with file:</div>
+            <div class="inline">
+              <i class="icon-file faded"></i>
+              <input type="file" class="file" id="selectFile">  
+              <button id="upload-btn" class="btn toolbar-button" data-title="Replace editor's contents with the selected file" disabled><i class="icon-upload"></i> Replace</button>
+            </div>
+          </div>
+
+          <script type="text/javascript">
+          var uploadedValue = null;
+          var handleDrop = function(event) {
+            var dropEvent, file, files, reader, supported,
+              _this = this;
+            event.preventDefault();
+            supported = window.File && window.FileReader && window.FileList && window.Blob;
+            if (!supported) {
+              alert("Your browser can't do this. Try using Safari 5.2+, Chrome, Firefox or IE 10+");
+              return;
+            }
+
+            dropEvent = event.originalEvent;
+            files = dropEvent.target.files || dropEvent.dataTransfer.files;
+            file = files[0];
+            reader = new FileReader();
+            reader.onload = function(readerEvent) {
+              uploadedValue = readerEvent.target.result;
+              $('#upload-btn').prop('disabled', false);
+            };
+            reader.onerror = function(readerEvent) {
+              return console.log(readerEvent);
+            };
+            reader.readAsText(file);
+            return false;
+          };
+
+          $('#selectFile').bind('change', handleDrop);
+
+          $('#upload-btn').bind('click', function(event) {
+            if (uploadedValue === null || editor == null) {
+              return false;
+            }
+
+            bootbox.dialog(
+              "This will replace the current editor's contents with the data from this file",
+              [{
+                'label': 'Cancel'
+              },
+              {
+                'label': 'Replace Contents',
+                'class': 'btn-primary',
+                'callback': function() {
+                  editor.setValue(uploadedValue);
+                }
+              }]
+            );
+          });
+
+          </script>
+          {{/isMultiFile}}
         </div>
       </div>
     </div>
@@ -309,10 +408,6 @@
             url: './loadDocument',
             async: false,
             success: function(result) {
-              if (console) {
-                console.log(result);
-              }
-
               if (result.data == null) {
                 alert('No data');
                 return;
@@ -675,6 +770,8 @@
         $('.status').hide();
         $('.marking-status').fadeIn();
 
+        window.app.resize();
+
         markingCheckTimer = setInterval(function() {
           $.ajax({
             type: "POST",
@@ -710,7 +807,9 @@
         $('.result-note').hide();
         $('.title').show();
         $('.status').hide();
-        $('.submitting-status').fadeIn();
+        $('.submitting-status').fadeIn(function() {
+          window.app.resize();
+        });
 
         if (typeof markingCheckTimer !== 'undefined' && markingCheckTimer !== null) {
           clearInterval(markingCheckTimer);
@@ -810,10 +909,11 @@
       $(document).ready(function() {
         $('.toolbar-button').mouseover(function(){
           if (currentFileName != null) {
-            $('#help-text').text($(this).attr('title').replace('$filename', currentFileName));
+            $('#help-text').text($(this).attr('data-title').replace('$filename', currentFileName));
           } else {
-            $('#help-text').text($(this).attr('title').replace('$filename', '(No File Open)'));
+            $('#help-text').text($(this).attr('data-title').replace('$filename', '(No File Open)'));
           }
+          $(this).attr('title', $('#help-text').text());
         }).mouseout(function(){
           if (currentFileName != null) {
             $('#help-text').empty().append('Editing ').append( $('<b>').text(currentFileName) );
@@ -861,6 +961,7 @@
           $('#compile-btn').prop('disabled', true);
           $('.status').hide();
           $('.title').show();
+          window.app.resize();
           $('.running-status').fadeIn(function() {
             doRun();
           });

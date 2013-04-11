@@ -128,7 +128,7 @@ renderStep = function() {
   pageData.isEmbed = !pageData.multiFile;
   pageData.isUpload = pageData.multiFile;
   pageData.isPublic = pageData.sharing === 'public';
-  pageData.isOutputOnlyShared = pageData.sharing === 'output';
+  pageData.isOutputOnlyShared = pageData.sharing === 'outputOnly';
   pageData.isPrivate = pageData.sharing === 'private';
 
   if (pageData.outputExhibited) {
@@ -136,7 +136,7 @@ renderStep = function() {
   } else {
     pageData.isFileSystemExhibited = false;
   }
-  
+
   // consolidate page data text
   pageData.requiredFiles = pageData.requiredFiles.join(',');
   pageData.optionalFiles = pageData.optionalFiles.join(',');

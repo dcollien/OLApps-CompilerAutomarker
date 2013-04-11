@@ -168,7 +168,13 @@ processFiles = function(filesWithData, preprocessingStep, matchString) {
         return result;
     }
 
-    re = new RegExp(preprocessingStep.search);
+    try {
+        re = new RegExp(preprocessingStep.search);
+    } catch (err) {
+        result.message = 'Invalid Regular Expression in Preprocessing:\n' + err;
+        return result;
+    }
+    
     if (preprocessingStep.action === "replace") {
         result.success = true;
         files = replaceAllFiles(re, preprocessingStep.replace, filesWithData, matchString);
@@ -198,7 +204,7 @@ doPreprocessing = function(preprocessingSteps, filesWithData) {
             result = processFiles(filesWithData, preprocessingSteps[i], matchString);
 
             filesWithData = result.files;
-            
+
             if (!result.success) {
                 return {
                     success: false,

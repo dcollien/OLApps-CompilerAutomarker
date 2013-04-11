@@ -88,8 +88,9 @@
         </div>
 
         <div class="form-actions">
-          <!-- if it's been filled in before, make this say "Save" -->
-          <a href="./configure?step=compilerOptions" class="btn btn-primary pull-right">Next &rarr;</a>
+          <a href="./configure?step=compilerOptions" class="btn pull-right">Next &rarr;</a>
+          <span class="pull-right">&nbsp;</span>
+          <button id="save-btn" class="btn pull-right btn-primary">Save</button>
         </div>
       </form>
     </div>
@@ -271,8 +272,9 @@
           load();
         } ); 
 
-        $(window).unload(function() {
+        $('#save-btn').click(function() {
           save();
+          return false;
         });
       });
     </script>
