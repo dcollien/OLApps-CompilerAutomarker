@@ -22,14 +22,16 @@
             <label class="radio">
               <input id="uploadOption" type="radio" value="upload" name="fileSubmissionMethod" {{#isUpload}}checked{{/isUpload}}> Multiple files
             </label>
+            <label class="checkbox{{#isEmbed}} hide{{/isEmbed}}">
+              <input id="usingEditor" type="checkbox" class="savedInput" name="usingEditor" {{#usingEditor}}checked{{/usingEditor}}> Display code editor
+            </label>
           </div>
         </div>
 
         <div class="control-group hide fileEntryContainer" id="requiredFilesContainer">
           <label class="control-label" for="requiredFileNames">Required Files:</label>
           <div class="controls">
-            <!-- get value from server -->
-            <input type="text" class="fileEntry" name="requiredFileNames" id="requiredFileNames" placeholder="Required File Names" value="{{requiredFiles}}">
+            <input type="text" class="fileEntry savedInput" name="requiredFileNames" id="requiredFileNames" placeholder="Required File Names" value="{{requiredFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that must be present for the submission to be accepted."></i></span>
           </div>
         </div>
@@ -37,8 +39,7 @@
         <div class="control-group hide fileEntryContainer" id="optionalFilesContainer">
           <label class="control-label" for="requiredFileNames">Optional Files:</label>
           <div class="controls">
-            <!-- get value from server -->
-            <input type="text" class="fileEntry" name="optionalFileNames" id="optionalFileNames" placeholder="Optional File Names" value="{{optionalFiles}}">
+            <input type="text" class="fileEntry savedInput" name="optionalFileNames" id="optionalFileNames" placeholder="Optional File Names" value="{{optionalFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that may be submitted but are not required for the submission to be accepted."></i></span>
             <span class="help-block"><code>*</code> may be used as a wildcard</span>
           </div>
@@ -47,19 +48,16 @@
         <div class="control-group hide fileEntryContainer" id="precludedFilesContainer">
           <label class="control-label" for="precludedFileNames">Precluded Files:</label>
           <div class="controls">
-            <!-- get value from server -->
-            <input type="text" class="fileEntry" name="precludedFileNames" id="precludedFileNames" placeholder="Precluded File Names" value="{{precludedFiles}}">
+            <input type="text" class="fileEntry savedInput" name="precludedFileNames" id="precludedFileNames" placeholder="Precluded File Names" value="{{precludedFiles}}">
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="A list of file names that are not permitted. If a file is submitted with a name matching one from this list (and it is not in the required and optional files lists) then the file will not be included in the submission."></i></span>
             <span class="help-block"><code>*</code> may be used as a wildcard</span>
           </div>
         </div>
 
-        <!-- get "hide" class from server -->
         <div class="control-group" id="embeddedFilenameContainer">
           <label class="control-label" for="embeddedFilename">File Name:</label>
           <div class="controls">
-            <!-- get value from server -->
-            <input type="text" id="embeddedFilename" name="embeddedFilename" value="{{singleFileName}}" placeholder="File Name">
+            <input type="text" class="savedInput" id="embeddedFilename" name="embeddedFilename" value="{{singleFileName}}" placeholder="File Name">
           </div>
         </div>
 
@@ -92,7 +90,7 @@
         </div>
 
         <div class="form-actions">
-          <a href="./configure?step=suppliedFiles" class="btn pull-right">Next &rarr;</a>
+          <a href="./configure?step=suppliedFiles" id="next-btn" class="btn pull-right">Next &rarr;</a>
           <span class="pull-right">&nbsp;</span>
           <button id="save-btn" class="btn pull-right btn-primary">Save</button>
         </div>
@@ -171,6 +169,11 @@
     <script type="text/javascript">
       var multiFile = false;
       var editingStep = null;
+      var isSaved = false;
+
+      $(window).load(function() {
+        isSaved = {{#isSaved}}true{{/isSaved}}{{^isSaved}}false{{/isSaved}};
+      });
 
       var populatePreprocessingModal = function(step) {
         console.log( 'populating with:', step );
@@ -425,12 +428,15 @@
         });
 
         changeFileSubmissionOptions = function() {
+          isSaved = false;
+
           var selectedOption = $('#fileSubmissionOptions input:radio:checked').val();
           if (selectedOption === 'embed') {
             $('.fileEntry').select2('disable');
             $('.fileEntryContainer').hide();
             $('#embeddedFilenameContainer').show();
             $('#modalFilesContainer').hide();
+            $('#usingEditor').parent().hide();
             $('.filesColumn').hide();
             multiFile = false;
             app.resize();
@@ -440,6 +446,8 @@
             $('#embeddedFilenameContainer').hide();
             $('#modalFilesContainer').show();
             $('.filesColumn').show();
+            $('#usingEditor').parent().show();
+            $('#usingEditor').show();
             multiFile = true;
             app.resize();
           }
@@ -455,8 +463,10 @@
 
         if ({{#isUpload}}true{{/isUpload}}{{^isUpload}}false{{/isUpload}}) {
           $('#uploadOption').prop('checked', true);
+          $('#usingEditor').prop('checked', {{#usingEditor}}true{{/usingEditor}}{{^usingEditor}}false{{/usingEditor}});
         } else {
           $('#embedOption').prop('checked', true);
+          $('#usingEditor').prop('checked', true);
         }
 
         var getSaveData = function() {
@@ -464,6 +474,7 @@
 
           data = {
             multiFile: multiFile,
+            usingEditor: $('#usingEditor').prop('checked'),
             requiredFiles: $('#requiredFileNames').val(),
             optionalFiles: $('#optionalFileNames').val(),
             precludedFiles: $('#precludedFileNames').val(),
@@ -503,9 +514,22 @@
 
         changeFileSubmissionOptions();
 
+        $('#next-btn').click(function() {
+          if (!isSaved) {
+            alert('There are unsaved changes.');
+          }
+
+          return isSaved;
+        });
+
         $('#save-btn').click(function() {
           save();
+          isSaved = true;
           return false;
+        });
+
+        $('.savedInput').change(function() {
+          isSaved = false;
         });
       });
     </script>

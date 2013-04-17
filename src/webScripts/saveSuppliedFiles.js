@@ -4,7 +4,8 @@ try {
 
   var pageUpdate = {
     compilationFiles: requestData.compilationFiles,
-    fileSystemFiles: requestData.fileSystemFiles
+    fileSystemFiles: requestData.fileSystemFiles,
+    suppliedFilesSaved: true
   }
 
   OpenLearning.page.setData(pageUpdate, request.user);

@@ -20,9 +20,9 @@
         <div class="control-group">
           <label class="control-label" for="sharingOptions">Sharing Options:</label>
           <div class="controls" id="sharingOptions">
-            <label class="radio"><input class="sharingOption" name="sharingOptions" value="public" type="radio" {{#isPublic}}checked{{/isPublic}}>Submission and output are both exhibited</label>
-            <label class="radio"><input class="sharingOption" name="sharingOptions" value="outputOnly" type="radio" {{#isOutputOnlyShared}}checked{{/isOutputOnlyShared}}>Only output is exhibited</label>
-            <label class="radio"><input class="sharingOption" name="sharingOptions" value="private" type="radio" {{#isPrivate}}checked{{/isPrivate}}>Only submission is exhibited</label>
+            <label class="radio"><input class="sharingOption saveInput" name="sharingOptions" value="public" type="radio" {{#isPublic}}checked{{/isPublic}}>Submission and output are both exhibited</label>
+            <label class="radio"><input class="sharingOption saveInput" name="sharingOptions" value="outputOnly" type="radio" {{#isOutputOnlyShared}}checked{{/isOutputOnlyShared}}>Only output is exhibited</label>
+            <label class="radio"><input class="sharingOption saveInput" name="sharingOptions" value="private" type="radio" {{#isPrivate}}checked{{/isPrivate}}>Only submission is exhibited</label>
           </div>
         </div>
 
@@ -31,7 +31,7 @@
             <span class="help-inline"><i class="icon-question-sign help-bubble" title="What will be displayed and exhibited as the output of this program"></i></span>
           </label>
           <div class="controls">
-              <select id="outputExhibited">
+              <select id="outputExhibited" class="saveInput">
                 {{#tests}}
                 <option value="{{name}}" {{#exhibited}}selected{{/exhibited}}>{{name}} (stdout)</option>
                 {{/tests}}
@@ -39,12 +39,12 @@
                 <option value="--file-system-{{name}}" {{#fileExhibited}}selected{{/fileExhibited}}>{{name}} (file)</option>
                 {{/tests}}
               </select>
-              <input type="text" id="fileNameInput" placeholder="File Name" value="{{sharedFile}}" disabled>
+              <input type="text" id="fileNameInput" placeholder="File Name" class="saveInput" value="{{sharedFile}}" disabled>
           </div>
         </div>
 
         <div class="form-actions">
-          <a href="./configure?step=done" class="btn pull-right">Next &rarr;</a>
+          <a href="./configure?step=done" id="next-btn" class="btn pull-right">Next &rarr;</a>
           <span class="pull-right">&nbsp;</span>
           <button id="save-btn" class="btn pull-right btn-primary">Save</button>
         </div>
@@ -52,6 +52,12 @@
     </div>
 
     <script type="text/javascript">
+      var isSaved = false;
+
+      $(window).load(function() {
+        isSaved = {{#isSaved}}true{{/isSaved}}{{^isSaved}}false{{/isSaved}};
+      });
+
       $(document).ready(function() {
         var changeSharingOptions, changeOutput;
 
@@ -101,9 +107,22 @@
 
         changeSharingOptions.call( $('.sharingOption:checked') );
         changeOutput.call( $('#outputExhibited') );
+        
+        $('.saveInput').change(function() {
+          isSaved = false;
+        });
+
+        $('#next-btn').click(function() {
+          if (!isSaved) {
+            alert('There are unsaved changes.');
+          }
+
+          return isSaved;
+        });
 
         $('#save-btn').click(function() {
           save();
+          isSaved = true;
           return false;
         });
 

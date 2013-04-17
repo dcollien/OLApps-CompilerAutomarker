@@ -209,6 +209,8 @@
     <div class="container-fluid">
       <div class="row-fluid">
         {{#isMultiFile}}
+        {{#usingEditor}}
+
         <div class="span2">
           <ul class="nav nav-list files-list">
             <li><small>Loading...</small></li>
@@ -218,9 +220,19 @@
           <button class="btn btn-mini bar-btn" id="upload"><i class="icon-upload"></i> Upload</button>
           <button class="btn btn-mini bar-btn" id="new"><i class="icon-file"></i> New</button>
         </div>
+
+        {{/usingEditor}}
         {{/isMultiFile}}
+
         {{#isMultiFile}}
+        
+        {{#usingEditor}}
         <div class="span10">
+        {{/usingEditor}}
+        {{^usingEditor}}
+        <div class="span12">
+        {{/usingEditor}}
+
         {{/isMultiFile}}
         {{^isMultiFile}}
         <div class="span12">
@@ -248,19 +260,34 @@
           </div>
 
           <div class="inline">
+            {{#usingEditor}}
             <div class="button-label">Editing:</div>
             <div class="btn-group">
               <button id="save-btn" class="btn toolbar-button" data-title="Save $filename"><i class="icon-download-alt"></i></button>
               <button id="undo-btn" class="btn toolbar-button" data-title="Undo"><img src="{{undo_icon}}"></button>
               <button id="redo-btn" class="btn toolbar-button" data-title="Redo"><img src="{{redo_icon}}"></button>
             </div>
+            {{/usingEditor}}
           </div>
+
+          <div class="clearfix"></div>
 
           <div class="help-container" id="help-text"></div>
 
-          <div class="editor-container">
-            <textarea class="editor" id="fileEditor"></textarea>
+          <div class="editor-container{{^usingEditor}} hide{{/usingEditor}}">
+            <textarea class="editor" id="fileEditor"></textarea>  
           </div>
+
+          {{^usingEditor}}
+          <div>
+            <ul class="nav nav-list files-list">
+              <li><small>Loading...</small></li>
+            </ul>
+            <br/>
+            <hr/>
+            <button class="btn btn-mini bar-btn" id="upload"><i class="icon-upload"></i> Upload</button>
+          </div>
+          {{/usingEditor}}
 
           {{^isMultiFile}}
           <br><br>
@@ -329,7 +356,7 @@
     </div>
 
     <br/>
-    <a href="#" id="submission-link" class="hide" target="_blank">Go to submission page &raquo;</a>
+    <a href="#" id="submission-link" class="hide" target="_blank"><img src="{{link_icon}}"> Permalink (submission files)</a>
 
     <script src="./testing.js"></script>
     <script>
@@ -347,6 +374,8 @@
       var toggleTabs;
 
       var markingCheckTimer;
+
+      var editorEnabled = {{#usingEditor}}true{{/usingEditor}}{{^usingEditor}}false{{/usingEditor}};
 
       fileSystem = null;
 
@@ -375,7 +404,7 @@
               submissionURL = result.submissionURL;
               populateFileList(submissionFiles);
               $('#submission-link').attr('href', submissionURL).show();
-
+              window.app.resize();
             },
             error: function() {
               alert('Unable to load file listing');
@@ -392,10 +421,12 @@
           $list.append($('<li>').append($('<a href="#">').text(files[i].filename)));
         }
 
-        if (currentFileName) {
+        if (currentFileName && editorEnabled) {
           $('.files-list li.active').removeClass('active');
           $('.files-list li:contains("' + currentFileName + '")').addClass('active');
         }
+
+        window.app.resize();
       };
 
       doLoad = function(filename) {
@@ -412,15 +443,22 @@
                 alert('No data');
                 return;
               }
-
-              editor.setValue(result.data);
-
+                            
               currentFileName = result.filename;
               $('#help-text').empty().append('Opened ').append( $('<b>').text(currentFileName) );
+
+              if (result.encoding === 'base64') {
+                editor.setValue('Unable to display binary data: ' + currentFileName);
+                window.app.sendMessage('notify', {'title':'Unable to open', 'text': 'Cannot open a binary file in editor. <a href="' + submissionURL + '/' + currentFileName + '" target="_blank">Open file in a new window.</a>'});
+                editor.setOption('readOnly', true);
+                $('.CodeMirror').addClass('disabled');
+              } else {
+                editor.setValue(result.data);
+                editor.setOption('readOnly', false);
+                $('.CodeMirror').removeClass('disabled');
+              }
+
               isSaved = true;
-              
-              editor.setOption('readOnly', false);
-              $('.CodeMirror').removeClass('disabled');
 
               window.app.resize();
             },
@@ -454,6 +492,8 @@
       };
 
       loadDocument = function(filename, callback) {
+        if (!editorEnabled) return;
+
         if (!isSaved) {
           confirmUnsaved(function() {
             doLoad(filename);
@@ -915,7 +955,7 @@
           }
           $(this).attr('title', $('#help-text').text());
         }).mouseout(function(){
-          if (currentFileName != null) {
+          if (currentFileName != null && editorEnabled) {
             $('#help-text').empty().append('Editing ').append( $('<b>').text(currentFileName) );
           } else {
             $('#help-text').empty();
@@ -1003,13 +1043,23 @@
           }
         });
 
-        $('.files-list').on('click', 'li', function() {
-          var $item = $(this);
-          loadDocument($(this).text(), function() {
-            $('.files-list li.active').removeClass('active');
-            $item.addClass('active');
+
+        if (editorEnabled) {
+          $('.files-list').on('click', 'li', function() {
+            var $item = $(this);
+            loadDocument($(this).text(), function() {
+              $('.files-list li.active').removeClass('active');
+              $item.addClass('active');
+            });
           });
-        });
+        } else {
+          $('.files-list').on('click', 'li', function() {
+            var filename = $(this).text();
+            if (submissionURL != null) {
+              window.open(submissionURL + '/' + filename);
+            }
+          });
+        }
 
         // TODO: see if compiled
         $('#run-btn').prop('disabled', true);
@@ -1021,8 +1071,12 @@
         {{/isMultiFile}}
 
         {{^isMultiFile}}
-        currentFileName = '{{singleFileName}}';
-        if (currentFileName === '') {
+        if (editorEnabled) {
+          currentFileName = '{{singleFileName}}';
+          if (currentFileName === '') {
+            currentFileName = null;
+          }
+        } else {
           currentFileName = null;
         }
         {{/isMultiFile}}
@@ -1098,11 +1152,17 @@
 
         window.app.onMessage('close', function() {
           loadFileList();
-          $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
+
+          if (editorEnabled) {
+            $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
+          }
         });
 
         window.app.resize();
-        $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
+        if (editorEnabled) {
+          $('.files-list li a:contains(' + currentFileName + ')').parent('li').addClass('active');
+        }
+
       });
     </script>
   </body>

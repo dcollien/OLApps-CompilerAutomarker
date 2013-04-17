@@ -32,8 +32,8 @@ var CTools = {
       for (i = 0; i != flags.length; ++i) {
         if (flags[i].indexOf('-W') === 0) {
           post_data += encodeFieldPart(boundary, 'warnings', flags[i].slice('-W'.length));
-        } else if (flags[i].indexOf('-std') === 0) {
-          post_data += encodeFieldPart(boundary, 'std', flags[i].slice('-std'.length));
+        } else if (flags[i].indexOf('-std=') === 0) {
+          post_data += encodeFieldPart(boundary, 'std', flags[i].slice('-std='.length));
         }
       }
     }
@@ -58,12 +58,20 @@ var CTools = {
       }
       
       if (returnObj.compiledCode && returnObj.compiledCode.error) {
-        returnObj.success = false;
-        returnObj.error = returnObj.compiledCode.response;
+        if (returnObj.compiledCode.code === 500) {
+          returnObj.success = false;
+          returnObj.error = "The server responsible for compiling your program is currently broken.";
+          returnObj.errorType = "Compile Server Broken";
+        } else {
+          returnObj.success = false;
+          returnObj.error = returnObj.compiledCode.response;
+          returnObj.errorType = "Compilation Error";
+        }
       }
     } catch (err) {
       returnObj = {
         error: err.toString(),
+        errorType: "Compile Server Error",
         success: false
       }
     }

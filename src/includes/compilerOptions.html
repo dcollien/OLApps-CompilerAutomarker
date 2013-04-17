@@ -245,8 +245,8 @@
           $('#compilationModal').modal('show');
           $('#compilationModal form')[0].reset();
           $('#compilationFiles').select2('val', []);
-          $('#compilationFlags').select2('val', []);
-
+          $('#compilationFlags').select2('val', ['-Wall', '-Werror']);
+          
           $('#isNew').val('true');
           return false;
         });

@@ -3,7 +3,8 @@ try {
   var pageUpdate = {
     sharing: request.data.sharing,
     outputExhibited: request.data.outputExhibited,
-    sharedFile: request.data.sharedFile
+    sharedFile: request.data.sharedFile,
+    sharingSaved: true
   };
 
   OpenLearning.page.setData(pageUpdate, request.user);

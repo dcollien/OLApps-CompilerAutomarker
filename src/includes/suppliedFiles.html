@@ -88,7 +88,7 @@
         </div>
 
         <div class="form-actions">
-          <a href="./configure?step=compilerOptions" class="btn pull-right">Next &rarr;</a>
+          <a href="./configure?step=compilerOptions" id="next-btn" class="btn pull-right">Next &rarr;</a>
           <span class="pull-right">&nbsp;</span>
           <button id="save-btn" class="btn pull-right btn-primary">Save</button>
         </div>
@@ -96,6 +96,13 @@
     </div>
     
     <script type="text/javascript">
+
+      var isSaved = false;
+
+      $(window).load(function() {
+        isSaved = {{#isSaved}}true{{/isSaved}}{{^isSaved}}false{{/isSaved}};
+      });
+
       $(document).ready(function() { 
         var compilationFiles, fileSystemFiles;
 
@@ -147,6 +154,7 @@
                     .change( function() {
                       var index = $(this).data('index');
                       compilationFiles[index].overwrite = $(this).prop('checked');
+                      isSaved = false;
                     } )
                 ).append('Overwrite')
               )
@@ -171,6 +179,7 @@
                     .change( function() {
                       var index = $(this).data('index');
                       fileSystemFiles[index].readable = $(this).prop('checked');
+                      isSaved = false;
                     } )
                 ).append('Read')
               ).append( 
@@ -181,6 +190,7 @@
                     .change( function() {
                       var index = $(this).data('index');
                       fileSystemFiles[index].writable = $(this).prop('checked');
+                      isSaved = false;
                     } )
                 ).append('Write')
               )
@@ -195,6 +205,7 @@
                     .change( function() {
                       var index = $(this).data('index');
                       fileSystemFiles[index].overwrite = $(this).prop('checked');
+                      isSaved = false;
                     } )
                 ).append('Overwrite')
               )
@@ -271,9 +282,18 @@
         $('#reloadButton').click( function() {
           load();
         } ); 
+        
+        $('#next-btn').click(function() {
+          if (!isSaved) {
+            alert('There are unsaved changes.');
+          }
+
+          return isSaved;
+        });
 
         $('#save-btn').click(function() {
           save();
+          isSaved = true;
           return false;
         });
       });

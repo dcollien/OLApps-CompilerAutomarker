@@ -22,7 +22,8 @@ view = {
   tick_icon: mediaURL('tick.png'),
   undo_icon: mediaURL('undo.png'),
   redo_icon: mediaURL('redo.png'),
-  small_tick_icon: mediaURL('small_tick.png')
+  small_tick_icon: mediaURL('small_tick.png'),
+  link_icon: mediaURL('link.png')
 };
 
 // <head> tag contents
@@ -54,6 +55,7 @@ pageData.multiFile = (pageData.multiFile + '') === 'true';
 
 view.isMultiFile = pageData.multiFile;
 view.singleFileName = pageData.singleFileName;
+view.usingEditor = (pageData.usingEditor + '') === 'true';
 
 renderEditor = function() {
   render(include('editor.html'), view);

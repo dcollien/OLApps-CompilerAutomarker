@@ -208,7 +208,8 @@ doPreprocessing = function(preprocessingSteps, filesWithData) {
             if (!result.success) {
                 return {
                     success: false,
-                    error: result.message
+                    error: result.message,
+                    errorType: "Preprocessing Error"
                 }
             }
         }
@@ -295,7 +296,8 @@ doCompilation = function(settings, compilationSteps, filesWithData) {
             } else {
                 return {
                     success: false,
-                    error: 'File not found: ' + files[fileIndex]
+                    error: 'File not found: ' + files[fileIndex],
+                    errorType: 'Required File Error'
                 }
             }
         }
@@ -307,7 +309,8 @@ doCompilation = function(settings, compilationSteps, filesWithData) {
             return {
                 success: false,
                 step: step,
-                error: compileOutput.error
+                error: compileOutput.error,
+                errorType: compileOutput.errorType
             };
         }
     }

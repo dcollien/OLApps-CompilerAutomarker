@@ -14,6 +14,7 @@ steps = {
       'multiFile',
       'isEmbed',
       'isUpload',
+      'usingEditor',
       'requiredFiles',
       'optionalFiles',
       'precludedFiles',
@@ -111,6 +112,7 @@ renderStep = function() {
     singleFileName: settings.defaultSingleFile,
     isEmbed: true,
     isUpload: false,
+    usingEditor: true,
     isPublic: true,
     isOutputOnlyShared: false,
     isPrivate: false,
@@ -127,6 +129,7 @@ renderStep = function() {
   pageData.multiFile = pageData.multiFile === true || pageData.multiFile === 'true';
   pageData.isEmbed = !pageData.multiFile;
   pageData.isUpload = pageData.multiFile;
+  pageData.usingEditor = pageData.usingEditor === true || pageData.usingEditor === 'true';
   pageData.isPublic = pageData.sharing === 'public';
   pageData.isOutputOnlyShared = pageData.sharing === 'outputOnly';
   pageData.isPrivate = pageData.sharing === 'private';
@@ -176,7 +179,10 @@ renderStep = function() {
     }
   }
 
+  view['isSaved'] = pageData[step + 'Saved'];
+
   view.spinner = mediaURL('loader.gif');
+  view.duplicate_icon = mediaURL('duplicate.png');
   view.addSourceURL = page.url + '/' + settings.codeSubPath;
   view.addFileSystemURL = page.url + '/' + settings.filesSubPath;
 

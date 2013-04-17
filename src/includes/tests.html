@@ -206,36 +206,59 @@
         var populateModal = function(test) {
           //console.log( 'populating with:', test );
 
-          $('#testOldName').val(test.name);
-          $('#testName').val(test.name);
-          $('#testProgram').val(test.program);
-          $('#testDryRun').prop('checked', test.dryRun);
-          $('#testArgs').val(test.args);
-          $('#testStdin').val(test.stdin);
-          $('#testStdout').val(test.stdout);
+          test.name && $('#testOldName').val(test.name);
+          test.name && $('#testName').val(test.name);
+          test.program && $('#testProgram').val(test.program);
 
-          $('#testIgnoreStdout').prop('checked', test.ignoreStdout);
+          if (typeof test.dryRun === 'undefined') {
+            test.dryRun = true;
+          }
+          $('#testDryRun').prop('checked', test.dryRun);
+
+          test.args && $('#testArgs').val(test.args);
+          test.stdin && $('#testStdin').val(test.stdin);
+          test.stdout && $('#testStdout').val(test.stdout);
+
+          $('#testIgnoreStdout').prop('checked', !!test.ignoreStdout);
           
+          if (!test.exitCode) {
+            test.exitCode = "0";
+          }
           $('#testExitCode').val(test.exitCode);
 
-          $('#testIgnoreExitCode').prop('checked', test.ignoreExitCode);
+          $('#testIgnoreExitCode').prop('checked', !!test.ignoreExitCode);
+          $('#testIgnoreWhitespace').prop('checked', !!test.ignoreWhitespace);
 
-          $('#testIgnoreWhitespace').prop('checked', test.ignoreWhitespace);
-          $('#testTrimWhitespace').prop('checked', test.trimWhitespace);
-          $('#testCollapseWhitespace').prop('checked', test.collapseWhitespace);
-          $('#testCaseInsensitive').prop('checked', test.caseInsensitive);
-          $('#testIgnoreTrailing').prop('checked', test.ignoreTrailing);
+          if (typeof test.trimWhitespace === 'undefined') {
+            test.trimWhitespace = true;
+          }
 
-          $('#testFeedbackSuccess').val(test.feedbackSuccess);
-          $('#testFeedbackStdoutFail').val(test.feedbackStdoutFail);
-          $('#testFeedbackExitCodeFail').val(test.feedbackExitCodeFail);
+          $('#testTrimWhitespace').prop('checked', !!test.trimWhitespace);
+          $('#testCollapseWhitespace').prop('checked', !!test.collapseWhitespace);
+          $('#testCaseInsensitive').prop('checked', !!test.caseInsensitive);
+          $('#testIgnoreTrailing').prop('checked', !!test.ignoreTrailing);
 
+          if (!test.feedbackSuccess) {
+            test.feedbackSuccess = "Test Passed!";
+          }
+          $('#testFeedbackSuccess').html(test.feedbackSuccess);
 
-          $('#testIgnoreStdout').change();
+          if (!test.feedbackStdoutFail) {
+            test.feedbackStdoutFail = "stdout doesn't match: test failed.\\nThe program output is not the same as the expected output.\\n";
+            test.feedbackStdoutFail += "\\nExpected:\\n<< expectedStdout >>\\n\\nThe program output: \\n<< stout >>\\n\\nstderr:\\n<< stderr >>\\n";
+          }
+          $('#testFeedbackStdoutFail').html(test.feedbackStdoutFail);
+
+          if (!test.feedbackExitCodeFail) {
+            test.feedbackExitCodeFail = "Test failed: The program did not terminate with EXIT_SUCCESS";
+          }
+          $('#testFeedbackExitCodeFail').html(test.feedbackExitCodeFail);
+
           $('#testIgnoreWhitespace').change();
           $('#testIgnoreExitCode').change();
+          $('#testIgnoreStdout').change();
 
-          isNew = false;
+          isNew = !!test.isNewTest;
           editingTest = test;
         };
 
@@ -300,10 +323,12 @@
 
           $row.append( 
           $('<td>')
-            .append('<a href="#" class="moveUpButton"><i class="icon-arrow-up"></i></a> ')
-            .append('<a href="#" class="moveDownButton"><i class="icon-arrow-down"></i></a> ')
-            .append('<a href="#" class="editButton"><i class="icon-edit"></i></a> ')
-            .append('<a href="#" class="deleteButton"><i class="icon-trash"></i></a> ')
+            .append('<a href="#" class="editButton" title="Edit"><i class="icon-edit"></i></a> ')
+            .append('<a href="#" class="moveUpButton" title="Move Before"><i class="icon-arrow-up"></i></a> ')
+            .append('<a href="#" class="moveDownButton" title="Move After"><i class="icon-arrow-down"></i></a> ')
+            .append('<a href="#" class="duplicateButton" title="Duplicate"><img src="{{duplicate_icon}}"></a> ')
+            .append('<span style="display: inline-block; width: 4px"></span>')
+            .append('<a href="#" class="deleteButton" title="Delete"><i class="icon-trash"></i></a> ')
           );
 
           test.element = $row;
@@ -315,8 +340,9 @@
         $('#addTestButton').click(function(){
           $('#testModal').modal('show');
           $('#testModal form')[0].reset();
-
-          isNew = true;
+          populateModal({
+            isNewTest: true
+          });
           return false;
         });
 
@@ -332,6 +358,34 @@
           return false;
         });
 
+        $('#testsListing').on('click', '.duplicateButton', function() {
+          var test = $(this).closest('.testRowEntry').data('test');
+          var newTest = {
+            name: test.name + ' copy',
+            program: test.program,
+            args: test.args,
+            stdin: test.stdin,
+            stdout: test.stdout,
+            ignoreStdout: test.ignoreStdout,
+            exitCode: test.exitCode,
+            ignoreExitCode: test.ignoreExitCode,
+            ignoreWhitespace: test.ignoreWhitespace,
+            trimWhitespace: test.trimWhitespace,
+            collapseWhitespace: test.collapseWhitespace,
+            caseInsensitive: test.caseInsensitive,
+            ignoreTrailing: test.ignoreTrailing,
+            feedbackSuccess: test.feedbackSuccess,
+            feedbackStdoutFail: test.feedbackStdoutFail,
+            feedbackExitCodeFail: test.feedbackExitCodeFail,
+            dryRun: test.dryRun
+          };
+
+          $('#testModal').modal('show');
+          $('#testModal form')[0].reset();
+
+          newTest.isNewTest = true;
+          populateModal(newTest);
+        });
 
         $('#testsListing').on('click', '.moveUpButton', function(){
           var $row = $(this).closest('.testRowEntry');
