@@ -112,18 +112,18 @@ var runTests = function(compiledTests, fileSystem) {
             return '<pre>' + escapeHTML(output+'').replace(/\n/g, '<span style="color:#ccf;">&crarr;</span>\n') + '</pre>';
         };
         
-        feedback = feedback.replace(/<<\s*stdout\s*>>/g, formatOutput(programOutput.stdout));
-        feedback = feedback.replace(/<<\s*stderr\s*>>/g, formatOutput(programOutput.stderr));
-        feedback = feedback.replace(/<<\s*exitCode\s*>>/g, formatOutput(programOutput.exitCode));
-        feedback = feedback.replace(/<<\s*expectedStdout\s*>>/g, formatOutput(expectedOutput.stdout));
-        feedback = feedback.replace(/<<\s*expectedExitCode\s*>>/g, formatOutput(expectedOutput.exitCode));
-        
+        feedback = feedback.replace(/&lt;&lt;\s*stdout\s*&gt;&gt;/g, formatOutput(programOutput.stdout));
+        feedback = feedback.replace(/&lt;&lt;\s*stderr\s*&gt;&gt;/g, formatOutput(programOutput.stderr));
+        feedback = feedback.replace(/&lt;&lt;\s*exitCode\s*&gt;&gt;/g, formatOutput(programOutput.exitCode));
+        feedback = feedback.replace(/&lt;&lt;\s*expectedStdout\s*&gt;&gt;/g, formatOutput(expectedOutput.stdout));
+        feedback = feedback.replace(/&lt;&lt;\s*expectedExitCode\s*&gt;&gt;/g, formatOutput(expectedOutput.exitCode));
+
         feedback = feedback.replace(/\{\{\s*stdout\s*\}\}/g, formatOutput(programOutput.stdout));
         feedback = feedback.replace(/\{\{\s*stderr\s*\}\}/g, formatOutput(programOutput.stderr));
         feedback = feedback.replace(/\{\{\s*exitCode\s*\}\}/g, formatOutput(programOutput.exitCode));
         feedback = feedback.replace(/\{\{\s*expectedStdout\s*\}\}/g, formatOutput(expectedOutput.stdout));
         feedback = feedback.replace(/\{\{\s*expectedExitCode\s*\}\}/g, formatOutput(expectedOutput.exitCode));
-        
+
         return feedback;
     };
 

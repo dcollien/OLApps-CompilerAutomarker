@@ -55,7 +55,7 @@ pageData.multiFile = (pageData.multiFile + '') === 'true';
 
 view.isMultiFile = pageData.multiFile;
 view.singleFileName = pageData.singleFileName;
-view.usingEditor = (pageData.usingEditor + '') === 'true';
+view.usingEditor = (pageData.usingEditor + '') !== 'false';
 
 renderEditor = function() {
   render(include('editor.html'), view);

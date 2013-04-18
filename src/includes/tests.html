@@ -245,7 +245,7 @@
 
           if (!test.feedbackStdoutFail) {
             test.feedbackStdoutFail = "stdout doesn't match: test failed.\\nThe program output is not the same as the expected output.\\n";
-            test.feedbackStdoutFail += "\\nExpected:\\n<< expectedStdout >>\\n\\nThe program output: \\n<< stout >>\\n\\nstderr:\\n<< stderr >>\\n";
+            test.feedbackStdoutFail += "\\nExpected:\\n<< expectedStdout >>\\n\\nThe program output: \\n<< stdout >>\\n\\nstderr:\\n<< stderr >>\\n";
           }
           $('#testFeedbackStdoutFail').html(test.feedbackStdoutFail);
 
